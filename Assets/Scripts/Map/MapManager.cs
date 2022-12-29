@@ -13,8 +13,21 @@ namespace Map
         Heavy
     }
 
+    public enum EntityRoomStatus
+    {
+        Entered,
+        Moving,
+        Exit,
+        Retired // The mob is waiting to re-enter on the next wave
+    }
+
     public class MapManager : MonoBehaviour
     {
+        [Header("Wave")]
+        [SerializeField] private bool enableWave;
+
+        [SerializeField] private float waveTimeInterval;
+
         [Header("Levels")]
         [SerializeField] private int levelsNum;
 
@@ -25,8 +38,8 @@ namespace Map
         [SerializeField] private List<RoomController> roomsControllers;
 
         [SerializeField] private List<RoomType> roomsTypes;
-
         [SerializeField] private List<int> entitiesInRooms;
+        [SerializeField] private List<EntityRoomStatus> entityRoomStatus;
         [SerializeField] private List<float> damagePerEntity;
         [SerializeField] private List<bool> roomsCanFire;
 
@@ -34,23 +47,97 @@ namespace Map
         [SerializeField] private int startingLevelsNum;
 
         [SerializeField] private GameObject levelTemplate;
-        [SerializeField] private Transform startPoint;
+        [SerializeField] private Transform mapRootPoint;
+        [SerializeField] private Transform startingPoint;
+
+        [SerializeField] private float currentWaveTimer;
+
         private Dictionary<Mob, int> entitiesToId;
         private Dictionary<int, Mob> idToEntities;
 
         private int mobGenID;
+        private int roomGenID;
 
-        private void Start()
+        private void Awake()
         {
             mobGenID = 0;
+            roomGenID = 0;
+
+            levelsControllers = new List<LevelController>();
+            roomsControllers = new List<RoomController>();
+
+            roomsTypes = new List<RoomType>();
+            entitiesInRooms = new List<int>();
+            damagePerEntity = new List<float>();
+            roomsCanFire = new List<bool>();
+            entityRoomStatus = new List<EntityRoomStatus>();
+
+            entitiesToId = new Dictionary<Mob, int>();
+            idToEntities = new Dictionary<int, Mob>();
+
+            currentWaveTimer = 0;
+
             CreateLayout(startingLevelsNum);
         }
 
-
-        private List<Vector3> CreateLayoutPositions()
+        public void Update()
         {
-            return new List<Vector3>();
+            if (enableWave)
+            {
+                currentWaveTimer += Time.deltaTime;
+
+                if (currentWaveTimer > waveTimeInterval)
+                {
+                    currentWaveTimer = 0f;
+                    CreateWave();
+                }
+            }
         }
+
+
+        private void LateUpdate()
+        {
+            for (var entityId = 0; entityId < entityRoomStatus.Count; entityId++)
+            {
+                if (entityRoomStatus[entityId] == EntityRoomStatus.Entered)
+                {
+                    idToEntities[entityId].StartMovingInRoom(roomsControllers[entitiesInRooms[entityId]]);
+                    SetMobRoomStatus(entityId, EntityRoomStatus.Moving);
+                }
+
+                if (entityRoomStatus[entityId] == EntityRoomStatus.Exit)
+                {
+                    if (HasMobPassedTheFinalRoom(entityId))
+                    {
+                        SetMobRoomStatus(entityId, EntityRoomStatus.Retired);
+                    }
+                    else
+                    {
+                        MoveMobToNextRoom(entityId);
+                    }
+                }
+            }
+
+            ApplyDamageFromRooms();
+            RetireMobs();
+        }
+
+        #region Wave Gameplay
+
+        public void CreateWave()
+        {
+            for (var entityId = 0; entityId < entityRoomStatus.Count; entityId++)
+            {
+                if (entityRoomStatus[entityId] == EntityRoomStatus.Retired)
+                {
+                    MoveMobToRoom(entityId, 0);
+                    SetMobRoomStatus(entityId, EntityRoomStatus.Entered);
+                }
+            }
+        }
+
+        #endregion
+
 
         #region Events
 
@@ -67,7 +154,7 @@ namespace Map
 
             for (int i = 0; i < levels - levelsNum; i++)
             {
-                var obj = Instantiate(levelTemplate, startPoint.position + (levelsNum + i) * offset, Quaternion.identity);
+                var obj = Instantiate(levelTemplate, mapRootPoint.position + (levelsNum + i) * offset, Quaternion.identity);
                 var levelController = obj.GetComponent<LevelController>();
                 RegisterLevel(levelController);
             }
@@ -87,9 +174,30 @@ namespace Map
             // Might add more things when registering rooms (like sound effects).
             foreach (var room in rooms)
             {
-                room.MapManager = this;
+                RegisterRoom(room);
             }
-            roomsControllers.AddRange(rooms);
+        }
+
+        private void RegisterRoom(RoomController room)
+        {
+            room.ID = GenRoomID();
+            room.MapManager = this;
+            roomsTypes.Add(RoomType.Empty);
+            roomsCanFire.Add(false);
+            roomsControllers.Add(room);
+            room.UpdateRoomName();
+        }
+
+        public void MarkRoomToFire(int roomId)
+        {
+            roomsCanFire[roomId] = true;
+        }
+
+        private int GenRoomID()
+        {
+            var id = roomGenID;
+            roomGenID += 1;
+            return roomGenID;
         }
 
         #endregion
@@ -105,9 +213,21 @@ namespace Map
                 if (roomsCanFire[room])
                 {
                     ComputeDamageToEntityFromRoom(entityId, room);
+                    ApplyDamageToMob(entityId);
+                    roomsCanFire[room] = false;
+                    roomsControllers[room].ResetFire();
                 }
+            }
+        }
 
-                ApplyDamageToMob(entityId);
+        private void RetireMobs()
+        {
+            for (var entityId = 0; entityId < entityRoomStatus.Count; entityId++)
+            {
+                if (entityRoomStatus[entityId] == EntityRoomStatus.Retired)
+                {
+                    RetireMob(entityId);
+                }
             }
         }
 
@@ -132,12 +252,23 @@ namespace Map
 
         private int GetNextRoomForMob(int entityId)
         {
-            return Mathf.Min(entitiesInRooms[entityId] + 1, roomsControllers.Count);
+            return Mathf.Min(entitiesInRooms[entityId] + 1, roomsControllers.Count - 1);
         }
 
         public void MoveMobToNextRoom(int entityId)
         {
             MoveMobToRoom(entityId, GetNextRoomForMob(entityId));
+            SetMobRoomStatus(entityId, EntityRoomStatus.Entered);
+        }
+
+        public void SetMobRoomStatus(int entityId, EntityRoomStatus status)
+        {
+            entityRoomStatus[entityId] = status;
+        }
+
+        private bool HasMobPassedTheFinalRoom(int entityId)
+        {
+            return entitiesInRooms[entityId] == roomsControllers.Count - 1;
         }
 
         #endregion
@@ -151,18 +282,30 @@ namespace Map
             return id;
         }
 
-        private void RegisterMob(Mob mob)
+        public void RegisterMob(Mob mob)
         {
             mob.id = GenMobID();
 
             entitiesInRooms.Add(0);
+            entityRoomStatus.Add(EntityRoomStatus.Entered);
             entitiesToId.Add(mob, mob.id);
             idToEntities.Add(mob.id, mob);
+            damagePerEntity.Add(0);
         }
 
         private void ApplyDamageToMob(int entityId)
         {
             idToEntities[entityId].ApplyDamage(damagePerEntity[entityId]);
+        }
+
+        private void MoveMobToStartingPoint(int entityId)
+        {
+            idToEntities[entityId].RelocateToPosition(startingPoint.transform.position);
+        }
+
+        private void RetireMob(int entityId)
+        {
+            MoveMobToStartingPoint(entityId);
         }
 
         #endregion

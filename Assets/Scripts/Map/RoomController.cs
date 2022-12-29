@@ -1,18 +1,29 @@
 ﻿using System.Collections.Generic;
 using GameEntities;
+using TMPro;
 using UnityEngine;
 
 namespace Map
 {
     public class RoomController : MonoBehaviour
     {
-        [SerializeField] private MapManager mapManager;
+        [Header("Attributes")]
+        [SerializeField] private float fireRate;
+
+        [SerializeField] private float currentFireInterval;
+
+        [Header("Settings")]
         [SerializeField] private int id;
+
+        [SerializeField] private MapManager mapManager;
         [SerializeField] private SpriteRenderer spriteRenderer;
         [SerializeField] private List<int> entitiesInRoom;
 
         [SerializeField] private Transform startingPoint;
         [SerializeField] private Transform exitPoint;
+
+        [Header("Components")]
+        [SerializeField] private TextMeshPro roomName;
 
         public int ID
         {
@@ -26,15 +37,22 @@ namespace Map
             set => mapManager = value;
         }
 
-        #region Map Manager Interactions
-
-        private void OnTriggerEnter(Collider other)
+        private void Update()
         {
-            var mob = other.gameObject.GetComponent<Mob>();
-            if (mob != null)
+            currentFireInterval += Time.deltaTime;
+
+            if (currentFireInterval > fireRate)
             {
-                mapManager.MoveMobToNextRoom(mob.id);
+                mapManager.MarkRoomToFire(id);
+                ResetFire();
             }
+        }
+
+        #region UI
+
+        public void UpdateRoomName()
+        {
+            roomName.text = $"Room {id}";
         }
 
         #endregion
@@ -58,5 +76,28 @@ namespace Map
         {
             return exitPoint.position;
         }
+
+        #region Events
+
+        #endregion
+
+        #region Map Manager Interactions
+
+        private void OnTriggerEnter(Collider other)
+        {
+            var mob = other.gameObject.GetComponent<Mob>();
+            if (mob != null)
+            {
+                mapManager.SetMobRoomStatus(mob.id, EntityRoomStatus.Exit);
+            }
+        }
+
+        public void ResetFire()
+        {
+            currentFireInterval = 0f;
+        }
+
+        #endregion
+
     }
 }
