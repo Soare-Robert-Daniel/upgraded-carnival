@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using GameEntities;
+using Map.Room;
 using TMPro;
 using UnityEngine;
 
@@ -8,9 +9,10 @@ namespace Map
     public class RoomController : MonoBehaviour
     {
         [Header("Attributes")]
-        [SerializeField] private float fireRate;
+        [SerializeField] private bool canFire;
 
         [SerializeField] private float currentFireInterval;
+        [SerializeField] private RoomState roomState;
 
         [Header("Settings")]
         [SerializeField] private int id;
@@ -25,6 +27,9 @@ namespace Map
         [Header("Components")]
         [SerializeField] private TextMeshPro roomName;
 
+        [SerializeField] private SymbolController symbolController;
+
+
         public int ID
         {
             get => id;
@@ -37,25 +42,48 @@ namespace Map
             set => mapManager = value;
         }
 
+        public bool CanFire
+        {
+            get => canFire;
+            set => canFire = value;
+        }
+
+        private void Start()
+        {
+            symbolController.UpdateVerticalSymbols(SymbolStateV.Top);
+            symbolController.UpdateHorizontalSymbols(SymbolStateH.RightAndLeft);
+        }
+
         private void Update()
         {
+            // Remove in the future
+            UpdateSymbols();
+
+            if (!canFire)
+            {
+                return;
+            }
+
             currentFireInterval += Time.deltaTime;
 
-            if (currentFireInterval > fireRate)
+            if (currentFireInterval > roomState.fireRate)
             {
                 mapManager.MarkRoomToFire(id);
                 ResetFire();
             }
         }
 
-        #region UI
 
-        public void UpdateRoomName()
+        public RoomState GetState()
         {
-            roomName.text = $"Room {id}";
+            return roomState;
         }
 
-        #endregion
+        public void UpdateState(RoomState newState)
+        {
+            roomState = newState;
+            UpdateSymbols();
+        }
 
         public void SetPosition(Vector3 newPosition)
         {
@@ -76,6 +104,21 @@ namespace Map
         {
             return exitPoint.position;
         }
+
+        #region UI
+
+        public void UpdateRoomName()
+        {
+            roomName.text = $"Room {id}";
+        }
+
+        public void UpdateSymbols()
+        {
+            symbolController.UpdateVerticalSymbols(roomState.verticalSym);
+            symbolController.UpdateHorizontalSymbols(roomState.horizontalSym);
+        }
+
+        #endregion
 
         #region Events
 

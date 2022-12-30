@@ -181,7 +181,9 @@ namespace Map
         private void RegisterRoom(RoomController room)
         {
             room.ID = GenRoomID();
+            room.CanFire = true;
             room.MapManager = this;
+
             roomsTypes.Add(RoomType.Empty);
             roomsCanFire.Add(false);
             roomsControllers.Add(room);
@@ -197,7 +199,7 @@ namespace Map
         {
             var id = roomGenID;
             roomGenID += 1;
-            return roomGenID;
+            return id;
         }
 
         #endregion
