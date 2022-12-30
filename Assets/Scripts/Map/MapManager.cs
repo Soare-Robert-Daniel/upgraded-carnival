@@ -1,17 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using GameEntities;
+using Map.Room;
 using UnityEngine;
 
 namespace Map
 {
-    public enum RoomType
-    {
-        Empty,
-        Simple,
-        Medium,
-        Heavy
-    }
+
 
     public enum EntityRoomStatus
     {
@@ -37,7 +32,7 @@ namespace Map
         [Header("Rooms")]
         [SerializeField] private List<RoomController> roomsControllers;
 
-        [SerializeField] private List<RoomType> roomsTypes;
+        [SerializeField] private List<RoomModel> roomModels;
         [SerializeField] private List<int> entitiesInRooms;
         [SerializeField] private List<EntityRoomStatus> entityRoomStatus;
         [SerializeField] private List<float> damagePerEntity;
@@ -57,6 +52,7 @@ namespace Map
 
         private int mobGenID;
         private int roomGenID;
+        private Dictionary<RoomType, float> roomsDamage;
 
         private void Awake()
         {
@@ -66,7 +62,6 @@ namespace Map
             levelsControllers = new List<LevelController>();
             roomsControllers = new List<RoomController>();
 
-            roomsTypes = new List<RoomType>();
             entitiesInRooms = new List<int>();
             damagePerEntity = new List<float>();
             roomsCanFire = new List<bool>();
@@ -74,10 +69,12 @@ namespace Map
 
             entitiesToId = new Dictionary<Mob, int>();
             idToEntities = new Dictionary<int, Mob>();
+            roomsDamage = new Dictionary<RoomType, float>();
 
             currentWaveTimer = 0;
 
             CreateLayout(startingLevelsNum);
+            UpdateRoomDamageFromModels();
         }
 
         public void Update()
@@ -184,7 +181,6 @@ namespace Map
             room.CanFire = true;
             room.MapManager = this;
 
-            roomsTypes.Add(RoomType.Empty);
             roomsCanFire.Add(false);
             roomsControllers.Add(room);
             room.UpdateRoomName();
@@ -235,16 +231,54 @@ namespace Map
 
         private void ComputeDamageToEntityFromRoom(int entityId, int roomId)
         {
-            var damage = roomsTypes[roomId] switch
-            {
-                RoomType.Empty => 0f,
-                RoomType.Simple => 1f,
-                RoomType.Medium => 5f,
-                RoomType.Heavy => 10f,
-                _ => throw new ArgumentOutOfRangeException($"{roomsTypes[roomId]} is not a valid Room type.")
-            };
+            damagePerEntity[entityId] = GetDamageFromRoom(roomId);
+            var roomState = roomsControllers[roomId].GetState();
 
-            damagePerEntity[entityId] = damage;
+            switch (roomState.verticalSym)
+            {
+                case SymbolStateV.None:
+                    break;
+                case SymbolStateV.Top:
+                    damagePerEntity[entityId] += GetDamageFromRoom(entityId + 3);
+                    break;
+                case SymbolStateV.Bottom:
+                    damagePerEntity[entityId] += GetDamageFromRoom(entityId - 3);
+                    break;
+                case SymbolStateV.TopAndBottom:
+                    damagePerEntity[entityId] += GetDamageFromRoom(entityId + 3);
+                    damagePerEntity[entityId] += GetDamageFromRoom(entityId - 3);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            switch (roomState.horizontalSym)
+            {
+                case SymbolStateH.None:
+                    break;
+                case SymbolStateH.Left:
+                    damagePerEntity[entityId] += GetDamageFromRoom(entityId - 1);
+                    break;
+                case SymbolStateH.Right:
+                    damagePerEntity[entityId] += GetDamageFromRoom(entityId + 1);
+                    break;
+                case SymbolStateH.RightAndLeft:
+                    damagePerEntity[entityId] += GetDamageFromRoom(entityId - 1);
+                    damagePerEntity[entityId] += GetDamageFromRoom(entityId + 1);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        private float GetDamageFromRoom(int roomId)
+        {
+            if (roomId >= roomsControllers.Count)
+            {
+                return 0f;
+            }
+            var roomState = roomsControllers[roomId].GetState();
+            return roomsDamage.TryGetValue(roomState.roomType, out var damage) ? damage : 0f;
         }
 
         private void MoveMobToRoom(int entityId, int roomId)
@@ -271,6 +305,14 @@ namespace Map
         private bool HasMobPassedTheFinalRoom(int entityId)
         {
             return entitiesInRooms[entityId] == roomsControllers.Count - 1;
+        }
+
+        private void UpdateRoomDamageFromModels()
+        {
+            foreach (var roomModel in roomModels)
+            {
+                roomsDamage.Add(roomModel.roomType, roomModel.damage);
+            }
         }
 
         #endregion

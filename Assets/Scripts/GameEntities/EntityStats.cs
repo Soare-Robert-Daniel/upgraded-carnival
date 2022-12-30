@@ -7,6 +7,7 @@ namespace GameEntities
     public class EntityStats
     {
         [SerializeField] private float health;
+        [SerializeField] private float maxHealth;
 
         public float Health
         {
@@ -17,6 +18,15 @@ namespace GameEntities
         public bool IsAlive()
         {
             return health > 0;
+        }
+
+        public float RemainingHealthPercentage()
+        {
+            if (maxHealth < 0.000000001f)
+            {
+                return 0f;
+            }
+            return health / maxHealth;
         }
     }
 }

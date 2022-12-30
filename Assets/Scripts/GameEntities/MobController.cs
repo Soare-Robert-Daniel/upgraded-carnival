@@ -15,10 +15,16 @@ namespace GameEntities
         [SerializeField] private MapManager manager;
 
         [SerializeField] private Rigidbody2D rd2D;
+        [SerializeField] private HealthBarController healthBarController;
 
         private void Start()
         {
             manager.RegisterMob(this);
+        }
+
+        private void Update()
+        {
+            UpdateHealthBar();
         }
 
         #region Room Movement
@@ -50,6 +56,11 @@ namespace GameEntities
             {
                 manager.SetMobRoomStatus(id, EntityRoomStatus.Exit);
             }
+        }
+
+        private void UpdateHealthBar()
+        {
+            healthBarController.SetPercentage(stats.RemainingHealthPercentage());
         }
 
         #endregion

@@ -3,6 +3,14 @@ using UnityEngine;
 
 namespace Map.Room
 {
+    public enum RoomType
+    {
+        Empty,
+        Simple,
+        Medium,
+        Heavy
+    }
+
     [Serializable]
     public struct RoomState
     {
@@ -25,8 +33,6 @@ namespace Map.Room
 
             roomType = roomModel.roomType;
             fireRate = roomModel.fireRate;
-            verticalSym = roomModel.verticalSym;
-            horizontalSym = roomModel.horizontalSym;
         }
     }
 }
