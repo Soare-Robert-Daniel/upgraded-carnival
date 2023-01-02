@@ -23,6 +23,16 @@ namespace UI
             mainContainer = menu.rootVisualElement.Q<VisualElement>("MainContainer");
             selectedRoomLabel = menu.rootVisualElement.Q<Label>("SelectedRoomLabel");
 
+            // container.RegisterCallback<MouseOverEvent>((_) =>
+            // {
+            //     manager.uiState.DeactivateSelecting();
+            // });
+            //
+            // container.RegisterCallback<MouseOutEvent>((_) =>
+            // {
+            //     manager.uiState.ActivateSelecting();
+            // });
+
             manager.OnInitUI += InitUI;
         }
 
@@ -53,11 +63,13 @@ namespace UI
         public void OpenMenu()
         {
             container.visible = true;
+            manager.uiState.DeactivateSelecting();
         }
 
         public void CloseMenu()
         {
             container.visible = false;
+            manager.uiState.ActivateSelecting();
         }
     }
 }

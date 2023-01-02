@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using GameEntities;
 using Map.Room;
+using UI;
 using UnityEngine;
 
 namespace Map
@@ -49,6 +50,8 @@ namespace Map
 
         [Header("Internals")]
         [SerializeField] private float currentWaveTimer;
+
+        public UIState uiState;
 
         [SerializeField] private int selectedRoomId;
 

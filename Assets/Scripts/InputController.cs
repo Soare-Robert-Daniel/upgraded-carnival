@@ -6,9 +6,14 @@ public class InputController : MonoBehaviour
 {
     [SerializeField] private MapManager manager;
     [SerializeField] private Camera mainCamera;
+    [SerializeField] private bool canSelect;
 
     public void SelectRoom(InputAction.CallbackContext context)
     {
+        if (!manager.uiState.CanSelect)
+        {
+            return;
+        }
         var r = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
 
         // Debug.Log($"Select {Mouse.current.position.ReadValue()} with {r.origin}");
