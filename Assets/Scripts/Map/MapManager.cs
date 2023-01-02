@@ -32,7 +32,6 @@ namespace Map
         [Header("Rooms")]
         [SerializeField] private List<RoomController> roomsControllers;
 
-        [SerializeField] private List<RoomModel> roomModels;
         [SerializeField] private List<int> entitiesInRooms;
         [SerializeField] private List<EntityRoomStatus> entityRoomStatus;
         [SerializeField] private List<float> damagePerEntity;
@@ -45,7 +44,13 @@ namespace Map
         [SerializeField] private Transform mapRootPoint;
         [SerializeField] private Transform startingPoint;
 
+        [Header("Models")]
+        [SerializeField] private RoomModels roomModels;
+
+        [Header("Internals")]
         [SerializeField] private float currentWaveTimer;
+
+        [SerializeField] private int selectedRoomId;
 
         private Dictionary<Mob, int> entitiesToId;
         private Dictionary<int, Mob> idToEntities;
@@ -77,6 +82,11 @@ namespace Map
             UpdateRoomDamageFromModels();
         }
 
+        private void Start()
+        {
+            OnInitUI?.Invoke();
+        }
+
         public void Update()
         {
             if (enableWave)
@@ -90,7 +100,6 @@ namespace Map
                 }
             }
         }
-
 
         private void LateUpdate()
         {
@@ -135,8 +144,10 @@ namespace Map
 
         #endregion
 
-
         #region Events
+
+        public event Action OnInitUI;
+        public event Action<int> OnSelectedRoomChange;
 
         #endregion
 
@@ -309,11 +320,25 @@ namespace Map
 
         private void UpdateRoomDamageFromModels()
         {
-            foreach (var roomModel in roomModels)
+            foreach (var roomModel in roomModels.list)
             {
                 roomsDamage.Add(roomModel.roomType, roomModel.damage);
             }
         }
+
+        public int SelectedRoomId
+        {
+            get => selectedRoomId;
+            set => selectedRoomId = value;
+        }
+
+        public void ChangeSelectedRoomWithEvent(int roomId)
+        {
+            SelectedRoomId = roomId;
+            OnSelectedRoomChange?.Invoke(roomId);
+        }
+
+        public RoomModels RoomModels => roomModels;
 
         #endregion
 

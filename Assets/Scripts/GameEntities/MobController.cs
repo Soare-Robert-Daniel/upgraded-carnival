@@ -47,7 +47,8 @@ namespace GameEntities
 
         public void ApplyDamage(float damage)
         {
-            stats.Health -= damage;
+            stats.Health = Mathf.Max(0, stats.Health - damage);
+            UpdateHealthBar();
         }
 
         private void OnTriggerEnter2D(Collider2D other)

@@ -8,6 +8,7 @@ namespace Map.Room
         [Header("Attributes")]
         public RoomType roomType;
 
+        public string roomName;
         public float fireRate;
         public float damage;
     }
