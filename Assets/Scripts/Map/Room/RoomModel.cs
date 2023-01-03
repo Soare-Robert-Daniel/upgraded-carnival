@@ -11,5 +11,6 @@ namespace Map.Room
         public string roomName;
         public float fireRate;
         public float damage;
+        public Sprite sprite;
     }
 }

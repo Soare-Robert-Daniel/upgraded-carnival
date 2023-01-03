@@ -1,0 +1,27 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements"
+         xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements"
+         noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement name="Top"
+                      style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); position: absolute; height: 150px; width: 100%; top: 0; left: auto; align-items: flex-start; flex-direction: row; justify-content: center; padding-top: 10px; padding-right: 10px; padding-left: 10px;">
+        <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); height: auto; max-width: none;">
+            <ui:VisualElement name="PlayerInfo" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0);">
+                <ui:Label tabindex="-1" text="Gold: 500" display-tooltip-when-elided="true" name="GoldLabel"
+                          style="font-size: 25px;"/>
+                <ui:Label tabindex="-1" text="Next Wave in: 60" display-tooltip-when-elided="true" name="NextWaveLabel"
+                          style="font-size: 25px;"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row-reverse;">
+            <ui:VisualElement name="Toolbar"
+                              style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); min-width: auto; min-height: auto; max-width: 500px; flex-direction: row-reverse;">
+                <ui:Button text="Settings" display-tooltip-when-elided="true" name="SettingsBtn"
+                           style="font-size: 20px; max-width: 100px;"/>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+    <ui:VisualElement name="RoomMenuPanel"
+                      style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); position: absolute; height: 56px; width: 100%; top: auto; left: auto; bottom: 0; align-items: center; flex-wrap: wrap;">
+        <ui:Button text="Open menu for room -1 " display-tooltip-when-elided="true" name="OpenRoomMenuBtn"
+                   style="font-size: 22px; height: auto; width: 300px;"/>
+    </ui:VisualElement>
+</ui:UXML>

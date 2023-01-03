@@ -60,7 +60,7 @@ namespace Map
 
         private int mobGenID;
         private int roomGenID;
-        private Dictionary<RoomType, float> roomsDamage;
+        private Dictionary<RoomType, float> roomsDamagePerType;
 
         private void Awake()
         {
@@ -77,7 +77,7 @@ namespace Map
 
             entitiesToId = new Dictionary<Mob, int>();
             idToEntities = new Dictionary<int, Mob>();
-            roomsDamage = new Dictionary<RoomType, float>();
+            roomsDamagePerType = new Dictionary<RoomType, float>();
 
             currentWaveTimer = 0;
 
@@ -212,6 +212,32 @@ namespace Map
             return id;
         }
 
+        private bool IsSelectedRoomValid()
+        {
+            return 0 <= selectedRoomId && selectedRoomId < roomsControllers.Count;
+        }
+
+        private void ChangeRoomTypeForSelectedRoom(RoomType roomType)
+        {
+            if (!IsSelectedRoomValid()) return;
+            var s = roomsControllers[selectedRoomId].GetState();
+            s.roomType = roomType;
+            roomsControllers[selectedRoomId].UpdateState(s);
+            foreach (var roomModel in RoomModels)
+            {
+                if (roomModel.roomType == roomType)
+                {
+                    roomsControllers[selectedRoomId].UpdateVisual(roomModel);
+                    break;
+                }
+            }
+        }
+
+        public void TryBuyRoomForSelectedRoom(RoomType roomType)
+        {
+            ChangeRoomTypeForSelectedRoom(roomType);
+        }
+
         #endregion
 
         #region Room Gameplay
@@ -292,7 +318,7 @@ namespace Map
                 return 0f;
             }
             var roomState = roomsControllers[roomId].GetState();
-            return roomsDamage.TryGetValue(roomState.roomType, out var damage) ? damage : 0f;
+            return roomsDamagePerType.TryGetValue(roomState.roomType, out var damage) ? damage : 0f;
         }
 
         private void MoveMobToRoom(int entityId, int roomId)
@@ -323,9 +349,9 @@ namespace Map
 
         private void UpdateRoomDamageFromModels()
         {
-            foreach (var roomModel in roomModels.list)
+            foreach (var roomModel in RoomModels)
             {
-                roomsDamage.Add(roomModel.roomType, roomModel.damage);
+                roomsDamagePerType.Add(roomModel.roomType, roomModel.damage);
             }
         }
 
@@ -337,11 +363,22 @@ namespace Map
 
         public void ChangeSelectedRoomWithEvent(int roomId)
         {
+            if (IsSelectedRoomValid())
+            {
+                roomsControllers[SelectedRoomId].Deselect();
+            }
+
             SelectedRoomId = roomId;
+            if (!IsSelectedRoomValid())
+            {
+                return;
+            }
+
+            roomsControllers[roomId].Select();
             OnSelectedRoomChange?.Invoke(roomId);
         }
 
-        public RoomModels RoomModels => roomModels;
+        public List<RoomModel> RoomModels => roomModels.list;
 
         #endregion
 

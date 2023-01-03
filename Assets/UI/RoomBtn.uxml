@@ -1,0 +1,9 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
+    <ui:VisualElement
+            style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); align-items: center; max-width: 250px; background-image: resource(&apos;personal/actionTreeBackgroundWithoutBorder&apos;); -unity-background-image-tint-color: rgb(53, 94, 54); justify-content: space-between; border-top-left-radius: 8px; border-bottom-left-radius: 8px; border-top-right-radius: 8px; border-bottom-right-radius: 8px; margin-left: 5px; margin-right: 5px; margin-top: 5px; margin-bottom: 5px;">
+        <ui:VisualElement
+                style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); max-height: 150px; max-width: 100%; width: 100%; height: 150px; background-image: url(&apos;project://database/Packages/com.unity.2d.animation/Editor/Assets/ComponentIcons/Animation.IKFabrik%20On@256.png?fileID=2800000&amp;guid=b533c652136df4744a089524507a44c6&amp;type=3#Animation.IKFabrik On@256&apos;); -unity-background-scale-mode: scale-to-fit;"/>
+        <ui:Button text="Buy Room Type" display-tooltip-when-elided="true" name="BuyRoomBtn"
+                   style="height: 50px; width: 100%; font-size: 22px; border-top-left-radius: 5px; border-bottom-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px;"/>
+    </ui:VisualElement>
+</ui:UXML>

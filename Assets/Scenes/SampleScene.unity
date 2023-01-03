@@ -285,9 +285,41 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: 07e721dd-6f61-4f07-8dab-395c10501fd8
     m_ActionName: SelectRoom/Select[/Mouse/position]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 706958870}
+        m_TargetAssemblyTypeName: UI.RoomMenu, Assembly-CSharp
+        m_MethodName: OpenMenu
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 825861b8-aa24-4e40-aa25-d208fe6a8880
+    m_ActionName: Room/OpenBuyMenu[/Keyboard/e,/XInputControllerWindows/buttonSouth]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 706958870}
+        m_TargetAssemblyTypeName: UI.RoomMenu, Assembly-CSharp
+        m_MethodName: CloseMenu
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 3db5031f-8cf1-4170-bcf8-d665ff531917
+    m_ActionName: Room/CloseBuyMenu[/Keyboard/r,/XInputControllerWindows/buttonEast]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
-  m_DefaultActionMap: SelectRoom
+  m_DefaultActionMap: Room
   m_SplitScreenIndex: -1
   m_Camera: {fileID: 0}
 --- !u!1 &255417287
@@ -415,7 +447,8 @@ MonoBehaviour:
   roomModels: {fileID: 11400000, guid: 33ecc9ef6472f0f41856614df23ecb08, type: 2}
   currentWaveTimer: 0
   uiState:
-    canSelect: 1
+    isOverHUD: 0
+    lockSelection: 0
   selectedRoomId: 0
 --- !u!1 &519420028
 GameObject:
@@ -979,7 +1012,16 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2811519475847668257, guid: 5d183f5f1909c2e489f21ef96f60a7e9, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 2626365811175435925, guid: 5d183f5f1909c2e489f21ef96f60a7e9, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 3462360019540230334, guid: 5d183f5f1909c2e489f21ef96f60a7e9, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: 5d183f5f1909c2e489f21ef96f60a7e9, type: 3}
 --- !u!1 &855961922
 GameObject:
@@ -1100,7 +1142,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1179770675
 Transform:
   m_ObjectHideFlags: 0
@@ -1277,7 +1319,16 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2811519475847668257, guid: 5d183f5f1909c2e489f21ef96f60a7e9, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 2626365811175435925, guid: 5d183f5f1909c2e489f21ef96f60a7e9, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 3462360019540230334, guid: 5d183f5f1909c2e489f21ef96f60a7e9, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: 5d183f5f1909c2e489f21ef96f60a7e9, type: 3}
 --- !u!1 &1729964576
 GameObject:
@@ -1530,5 +1581,14 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2811519475847668257, guid: 5d183f5f1909c2e489f21ef96f60a7e9, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 2626365811175435925, guid: 5d183f5f1909c2e489f21ef96f60a7e9, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 3462360019540230334, guid: 5d183f5f1909c2e489f21ef96f60a7e9, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: 5d183f5f1909c2e489f21ef96f60a7e9, type: 3}

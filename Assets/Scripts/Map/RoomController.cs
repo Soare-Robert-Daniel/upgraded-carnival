@@ -13,6 +13,7 @@ namespace Map
 
         [SerializeField] private float currentFireInterval;
         [SerializeField] private RoomState roomState;
+        [SerializeField] private bool isSelected;
 
         [Header("Settings")]
         [SerializeField] private int id;
@@ -28,6 +29,7 @@ namespace Map
         [SerializeField] private TextMeshPro roomName;
 
         [SerializeField] private SymbolController symbolController;
+        [SerializeField] private GameObject selectedBackgroundObj;
 
 
         public int ID
@@ -109,13 +111,31 @@ namespace Map
 
         public void UpdateRoomName()
         {
-            roomName.text = $"Room {id}";
+            roomName.text = $"Room {id} {roomState.roomType}";
+        }
+
+        public void UpdateVisual(RoomModel roomModel)
+        {
+            spriteRenderer.sprite = roomModel.sprite;
+            UpdateRoomName();
         }
 
         public void UpdateSymbols()
         {
             symbolController.UpdateVerticalSymbols(roomState.verticalSym);
             symbolController.UpdateHorizontalSymbols(roomState.horizontalSym);
+        }
+
+        public void Select()
+        {
+            isSelected = true;
+            selectedBackgroundObj.SetActive(true);
+        }
+
+        public void Deselect()
+        {
+            isSelected = false;
+            selectedBackgroundObj.SetActive(false);
         }
 
         #endregion

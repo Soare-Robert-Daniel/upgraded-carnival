@@ -43,11 +43,12 @@ namespace UI
 
         public void InitUI()
         {
-            foreach (var roomModel in manager.RoomModels.list)
+            foreach (var roomModel in manager.RoomModels)
             {
                 var btnElem = roomBtnTemplate.CloneTree();
-                var btn = btnElem.Q<Button>("RoomBtn");
-                btn.text = $"Room: {roomModel.roomName}";
+                var btn = btnElem.Q<Button>("BuyRoomBtn");
+                btn.text = $"Buy {roomModel.roomName}";
+                btn.clicked += () => manager.TryBuyRoomForSelectedRoom(roomModel.roomType);
                 mainContainer.Add(btnElem);
             }
 
