@@ -6,23 +6,48 @@ namespace Map.Room
     public enum RoomType
     {
         Empty,
-        Simple,
-        Medium,
-        Heavy
+        SlowRune,
+        AttackRune,
+        ConstantAttackFire,
+        BurstAttackFire
     }
 
     [Serializable]
-    public struct RoomState
+    public class RoomState
     {
         [Header("Attributes")]
-        public RoomType roomType;
+        [SerializeField] private RoomType roomType;
 
-        public float fireRate;
+        [SerializeField] private float fireRate;
 
         [Header("Visuals")]
-        public SymbolStateV verticalSym;
+        [SerializeField] private SymbolStateV verticalSym;
 
-        public SymbolStateH horizontalSym;
+        [SerializeField] private SymbolStateH horizontalSym;
+
+        public RoomType RoomType
+        {
+            get => roomType;
+            set => roomType = value;
+        }
+
+        public float FireRate
+        {
+            get => fireRate;
+            set => fireRate = value;
+        }
+
+        public SymbolStateV VerticalSym
+        {
+            get => verticalSym;
+            set => verticalSym = value;
+        }
+
+        public SymbolStateH HorizontalSym
+        {
+            get => horizontalSym;
+            set => horizontalSym = value;
+        }
 
         public void LoadFromModel(RoomModel roomModel)
         {

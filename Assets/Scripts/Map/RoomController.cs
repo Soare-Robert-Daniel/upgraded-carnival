@@ -50,6 +50,8 @@ namespace Map
             set => canFire = value;
         }
 
+        public RoomState RoomState => roomState;
+
         private void Start()
         {
             symbolController.UpdateVerticalSymbols(SymbolStateV.Top);
@@ -68,23 +70,22 @@ namespace Map
 
             currentFireInterval += Time.deltaTime;
 
-            if (currentFireInterval > roomState.fireRate)
+            if (currentFireInterval > roomState.FireRate)
             {
                 mapManager.MarkRoomToFire(id);
                 ResetFire();
             }
         }
 
-
-        public RoomState GetState()
-        {
-            return roomState;
-        }
-
         public void UpdateState(RoomState newState)
         {
             roomState = newState;
             UpdateSymbols();
+        }
+
+        public void RefreshStats()
+        {
+
         }
 
         public void SetPosition(Vector3 newPosition)
@@ -111,7 +112,7 @@ namespace Map
 
         public void UpdateRoomName()
         {
-            roomName.text = $"Room {id} {roomState.roomType}";
+            roomName.text = $"Room {id} {roomState.RoomType}";
         }
 
         public void UpdateVisual(RoomModel roomModel)
@@ -122,8 +123,8 @@ namespace Map
 
         public void UpdateSymbols()
         {
-            symbolController.UpdateVerticalSymbols(roomState.verticalSym);
-            symbolController.UpdateHorizontalSymbols(roomState.horizontalSym);
+            symbolController.UpdateVerticalSymbols(roomState.VerticalSym);
+            symbolController.UpdateHorizontalSymbols(roomState.HorizontalSym);
         }
 
         public void Select()

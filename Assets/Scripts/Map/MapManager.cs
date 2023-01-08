@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using GameEntities;
 using Map.Room;
 using UI;
@@ -61,6 +62,7 @@ namespace Map
         private int mobGenID;
         private int roomGenID;
         private Dictionary<RoomType, float> roomsDamagePerType;
+        private Stack<int> roomsToDisarm;
 
         private void Awake()
         {
@@ -78,6 +80,7 @@ namespace Map
             entitiesToId = new Dictionary<Mob, int>();
             idToEntities = new Dictionary<int, Mob>();
             roomsDamagePerType = new Dictionary<RoomType, float>();
+            roomsToDisarm = new Stack<int>();
 
             currentWaveTimer = 0;
 
@@ -92,6 +95,8 @@ namespace Map
 
         public void Update()
         {
+            UpdateMobsRunes();
+
             if (enableWave)
             {
                 currentWaveTimer += Time.deltaTime;
@@ -127,8 +132,10 @@ namespace Map
                 }
             }
 
+            AddRunesToMobsFromRooms();
             ApplyDamageFromRooms();
             RetireMobs();
+            DisarmRooms();
         }
 
         #region Wave Gameplay
@@ -220,13 +227,11 @@ namespace Map
         private void ChangeRoomTypeForSelectedRoom(RoomType roomType)
         {
             if (!IsSelectedRoomValid()) return;
-            var s = roomsControllers[selectedRoomId].GetState();
-            s.roomType = roomType;
-            roomsControllers[selectedRoomId].UpdateState(s);
             foreach (var roomModel in RoomModels)
             {
                 if (roomModel.roomType == roomType)
                 {
+                    roomsControllers[selectedRoomId].RoomState.LoadFromModel(roomModel);
                     roomsControllers[selectedRoomId].UpdateVisual(roomModel);
                     break;
                 }
@@ -242,20 +247,63 @@ namespace Map
 
         #region Room Gameplay
 
+        private void AddRunesToMobsFromRooms()
+        {
+            for (var entityId = 0; entityId < entitiesInRooms.Count; entityId++)
+            {
+                var roomId = entitiesInRooms[entityId];
+                if (roomsCanFire[roomId])
+                {
+                    AddRunesToMobFromRoom(entityId, roomId);
+                    AddToDisarmRoom(roomId);
+                }
+            }
+        }
+
+        private void AddRunesToMobFromRoom(int entityId, int roomId)
+        {
+            var roomType = roomsControllers[roomId].RoomState.RoomType;
+            var mob = idToEntities[entityId];
+
+            switch (roomType)
+            {
+                case RoomType.Empty:
+                    break;
+                case RoomType.SlowRune:
+                    mob.stats.AddRune(rune: new Rune().SetRuneType(RuneType.Slow).SetDuration(120));
+                    break;
+                case RoomType.AttackRune:
+                    mob.stats.AddRune(rune: new Rune().SetRuneType(RuneType.Attack).SetDuration(120));
+                    break;
+                case RoomType.ConstantAttackFire:
+                    break;
+                case RoomType.BurstAttackFire:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
         private void ApplyDamageFromRooms()
         {
             // I wonder if we can put this on a Job.
             for (var entityId = 0; entityId < entitiesInRooms.Count; entityId++)
             {
-                var room = entitiesInRooms[entityId];
-                if (roomsCanFire[room])
+                var roomId = entitiesInRooms[entityId];
+                if (roomsCanFire[roomId])
                 {
-                    ComputeDamageToEntityFromRoom(entityId, room);
+
+                    ApplyRuneActionToEntityFromRoom(entityId, roomId);
                     ApplyDamageToMob(entityId);
-                    roomsCanFire[room] = false;
-                    roomsControllers[room].ResetFire();
+                    AddToDisarmRoom(roomId);
                 }
             }
+        }
+
+        private void ResetRoomFireStatus(int roomId)
+        {
+            roomsCanFire[roomId] = false;
+            roomsControllers[roomId].ResetFire();
         }
 
         private void RetireMobs()
@@ -269,56 +317,68 @@ namespace Map
             }
         }
 
-        private void ComputeDamageToEntityFromRoom(int entityId, int roomId)
+        private void ApplyRuneActionToEntityFromRoom(int entityId, int roomId)
         {
-            damagePerEntity[entityId] = GetDamageFromRoom(roomId);
-            var roomState = roomsControllers[roomId].GetState();
+            damagePerEntity[entityId] = 0f;
 
-            switch (roomState.verticalSym)
+            var roomState = roomsControllers[roomId].RoomState;
+            var roomType = roomsControllers[roomId].RoomState.RoomType;
+            var mob = idToEntities[entityId];
+
+            switch (roomType)
+            {
+                case RoomType.Empty:
+                    break;
+                case RoomType.SlowRune:
+                    mob.AdjustSpeed();
+                    break;
+                case RoomType.AttackRune:
+                    break;
+                case RoomType.ConstantAttackFire:
+                    damagePerEntity[entityId] = 5f; // flat damage
+                    damagePerEntity[entityId] += mob.stats.Runes.Count(x => x.Type == RuneType.Attack) * 1f;
+                    break;
+                case RoomType.BurstAttackFire:
+                    damagePerEntity[entityId] = mob.stats.Runes.Count(x => x.Type == RuneType.Attack) * 5f;
+                    mob.stats.RemoveRuneType(RuneType.Attack);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            switch (roomState.VerticalSym)
             {
                 case SymbolStateV.None:
                     break;
                 case SymbolStateV.Top:
-                    damagePerEntity[entityId] += GetDamageFromRoom(entityId + 3);
+
                     break;
                 case SymbolStateV.Bottom:
-                    damagePerEntity[entityId] += GetDamageFromRoom(entityId - 3);
+
                     break;
                 case SymbolStateV.TopAndBottom:
-                    damagePerEntity[entityId] += GetDamageFromRoom(entityId + 3);
-                    damagePerEntity[entityId] += GetDamageFromRoom(entityId - 3);
+
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
 
-            switch (roomState.horizontalSym)
+            switch (roomState.HorizontalSym)
             {
                 case SymbolStateH.None:
                     break;
                 case SymbolStateH.Left:
-                    damagePerEntity[entityId] += GetDamageFromRoom(entityId - 1);
+
                     break;
                 case SymbolStateH.Right:
-                    damagePerEntity[entityId] += GetDamageFromRoom(entityId + 1);
+
                     break;
                 case SymbolStateH.RightAndLeft:
-                    damagePerEntity[entityId] += GetDamageFromRoom(entityId - 1);
-                    damagePerEntity[entityId] += GetDamageFromRoom(entityId + 1);
+
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-        }
-
-        private float GetDamageFromRoom(int roomId)
-        {
-            if (roomId >= roomsControllers.Count)
-            {
-                return 0f;
-            }
-            var roomState = roomsControllers[roomId].GetState();
-            return roomsDamagePerType.TryGetValue(roomState.roomType, out var damage) ? damage : 0f;
         }
 
         private void MoveMobToRoom(int entityId, int roomId)
@@ -351,7 +411,7 @@ namespace Map
         {
             foreach (var roomModel in RoomModels)
             {
-                roomsDamagePerType.Add(roomModel.roomType, roomModel.damage);
+                roomsDamagePerType.Add(roomModel.roomType, 1f);
             }
         }
 
@@ -376,6 +436,19 @@ namespace Map
 
             roomsControllers[roomId].Select();
             OnSelectedRoomChange?.Invoke(roomId);
+        }
+
+        private void AddToDisarmRoom(int roomId)
+        {
+            roomsToDisarm.Push(roomId);
+        }
+
+        private void DisarmRooms()
+        {
+            while (roomsToDisarm.Count > 0)
+            {
+                ResetRoomFireStatus(roomsToDisarm.Pop());
+            }
         }
 
         public List<RoomModel> RoomModels => roomModels.list;
@@ -415,6 +488,16 @@ namespace Map
         private void RetireMob(int entityId)
         {
             MoveMobToStartingPoint(entityId);
+        }
+
+        private void UpdateMobsRunes()
+        {
+            var time = Time.deltaTime;
+            foreach (var mob in idToEntities.Values)
+            {
+                mob.stats.DecreaseRunesDuration(time);
+                mob.stats.RemoveExpiredRunes();
+            }
         }
 
         #endregion

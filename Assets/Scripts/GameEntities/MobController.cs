@@ -1,4 +1,5 @@
-﻿using Map;
+﻿using System.Linq;
+using Map;
 using UnityEngine;
 
 namespace GameEntities
@@ -32,7 +33,13 @@ namespace GameEntities
         public void StartMovingInRoom(RoomController room)
         {
             transform.position = room.GetStartingPosition();
-            rd2D.velocity = movementDirection * speed;
+            AdjustSpeed();
+        }
+
+        public void AdjustSpeed()
+        {
+            var slow = stats.Runes.Count(x => x.Type == RuneType.Slow) * 0.1f;
+            rd2D.velocity = movementDirection * (speed * (1f - slow));
         }
 
         public void RelocateToPosition(Vector3 position)
