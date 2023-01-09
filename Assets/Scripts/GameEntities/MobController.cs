@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Economy;
 using Map;
 using UnityEngine;
 
@@ -9,6 +10,7 @@ namespace GameEntities
         public int id;
         public Vector3 target;
         public EntityStats stats;
+        public Bounty bounty;
         public Vector3 movementDirection = Vector3.right;
         public float speed = 2f;
 

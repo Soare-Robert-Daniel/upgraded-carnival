@@ -395,6 +395,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 414924787}
+  - component: {fileID: 414924789}
   - component: {fileID: 414924788}
   m_Layer: 0
   m_Name: MapManager
@@ -431,7 +432,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enableWave: 1
-  waveTimeInterval: 5
+  waveTimeInterval: 60
   levelsNum: 0
   offset: {x: 0, y: 11, z: 0}
   levelsControllers: []
@@ -444,12 +445,26 @@ MonoBehaviour:
   levelTemplate: {fileID: 2811519476003989976, guid: 5d183f5f1909c2e489f21ef96f60a7e9, type: 3}
   mapRootPoint: {fileID: 255417288}
   startingPoint: {fileID: 800240240}
+  economyController: {fileID: 414924789}
   roomModels: {fileID: 11400000, guid: 33ecc9ef6472f0f41856614df23ecb08, type: 2}
   currentWaveTimer: 0
   uiState:
     isOverHUD: 0
     lockSelection: 0
   selectedRoomId: 0
+--- !u!114 &414924789
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 414924786}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d7e27147efb4524909257b67c3afa23, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  currentGold: 300
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -1248,8 +1263,12 @@ MonoBehaviour:
   id: 0
   target: {x: 0, y: 0, z: 0}
   stats:
-    health: 100
+    health: 1
     maxHealth: 100
+    runes: []
+  bounty:
+    currency: 0
+    value: 1000
   movementDirection: {x: 1, y: 0, z: 0}
   speed: 4
   manager: {fileID: 414924788}

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Economy;
 using GameEntities;
 using Map.Room;
 using UI;
@@ -9,13 +10,13 @@ using UnityEngine;
 namespace Map
 {
 
-
     public enum EntityRoomStatus
     {
-        Entered,
-        Moving,
-        Exit,
-        Retired // The mob is waiting to re-enter on the next wave
+        Entered, // Just entered in the room.
+        Moving, // Moving through the room.
+        Exit, // Need to exit and enter the next room.
+        Retired, // Should retired from the scene to the spawn point.
+        ReadyToSpawn // Waiting to re-enter on the next wave.
     }
 
     public class MapManager : MonoBehaviour
@@ -45,6 +46,7 @@ namespace Map
         [SerializeField] private GameObject levelTemplate;
         [SerializeField] private Transform mapRootPoint;
         [SerializeField] private Transform startingPoint;
+        [SerializeField] private EconomyController economyController;
 
         [Header("Models")]
         [SerializeField] private RoomModels roomModels;
@@ -63,6 +65,9 @@ namespace Map
         private int roomGenID;
         private Dictionary<RoomType, float> roomsDamagePerType;
         private Stack<int> roomsToDisarm;
+
+
+        public EconomyController EconomyController => economyController;
 
         private void Awake()
         {
@@ -100,6 +105,7 @@ namespace Map
             if (enableWave)
             {
                 currentWaveTimer += Time.deltaTime;
+                OnNextWaveTimeChanged?.Invoke(waveTimeInterval - currentWaveTimer);
 
                 if (currentWaveTimer > waveTimeInterval)
                 {
@@ -158,6 +164,7 @@ namespace Map
 
         public event Action OnInitUI;
         public event Action<int> OnSelectedRoomChange;
+        public event Action<float> OnNextWaveTimeChanged;
 
         #endregion
 
@@ -231,8 +238,13 @@ namespace Map
             {
                 if (roomModel.roomType == roomType)
                 {
-                    roomsControllers[selectedRoomId].RoomState.LoadFromModel(roomModel);
-                    roomsControllers[selectedRoomId].UpdateVisual(roomModel);
+                    if (economyController.CanSpend(Currency.Gold, roomModel.price))
+                    {
+                        economyController.SpendCurrency(Currency.Gold, roomModel.price);
+                        roomsControllers[selectedRoomId].RoomState.LoadFromModel(roomModel);
+                        roomsControllers[selectedRoomId].UpdateVisual(roomModel);
+                    }
+
                     break;
                 }
             }
@@ -296,6 +308,7 @@ namespace Map
                     ApplyRuneActionToEntityFromRoom(entityId, roomId);
                     ApplyDamageToMob(entityId);
                     AddToDisarmRoom(roomId);
+                    ShouldRetire(entityId);
                 }
             }
         }
@@ -306,6 +319,14 @@ namespace Map
             roomsControllers[roomId].ResetFire();
         }
 
+        private void ShouldRetire(int entityId)
+        {
+            if (!idToEntities[entityId].stats.IsAlive())
+            {
+                SetMobRoomStatus(entityId, EntityRoomStatus.Retired);
+            }
+        }
+
         private void RetireMobs()
         {
             for (var entityId = 0; entityId < entityRoomStatus.Count; entityId++)
@@ -313,6 +334,8 @@ namespace Map
                 if (entityRoomStatus[entityId] == EntityRoomStatus.Retired)
                 {
                     RetireMob(entityId);
+                    CollectBountyFromMob(entityId);
+                    SetMobRoomStatus(entityId, EntityRoomStatus.ReadyToSpawn);
                 }
             }
         }
@@ -498,6 +521,11 @@ namespace Map
                 mob.stats.DecreaseRunesDuration(time);
                 mob.stats.RemoveExpiredRunes();
             }
+        }
+
+        private void CollectBountyFromMob(int entityId)
+        {
+            economyController.AddCurrency(idToEntities[entityId].bounty.currency, idToEntities[entityId].bounty.value);
         }
 
         #endregion

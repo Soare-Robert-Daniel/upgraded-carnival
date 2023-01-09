@@ -46,11 +46,19 @@ namespace UI
             foreach (var roomModel in manager.RoomModels)
             {
                 var btnElem = roomBtnTemplate.CloneTree();
+
                 var btn = btnElem.Q<Button>("BuyRoomBtn");
                 var img = btnElem.Q<VisualElement>("MainSprite");
+                var roomPrice = btnElem.Q<Label>("RoomPrice");
+
+
                 btn.text = $"Buy {roomModel.roomName}";
-                img.style.backgroundImage = roomModel.sprite.texture;
                 btn.clicked += () => manager.TryBuyRoomForSelectedRoom(roomModel.roomType);
+
+                img.style.backgroundImage = roomModel.sprite.texture;
+
+                roomPrice.text = $"{roomModel.price}";
+
                 mainContainer.Add(btnElem);
             }
 

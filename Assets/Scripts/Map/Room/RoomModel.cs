@@ -10,6 +10,7 @@ namespace Map.Room
 
         public string roomName;
         public float fireRate;
+        public float price;
 
         [Header("Assets")]
         public Sprite sprite;

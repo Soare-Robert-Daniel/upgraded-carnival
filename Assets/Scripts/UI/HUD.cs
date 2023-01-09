@@ -24,7 +24,7 @@ namespace UI
 
             manager.OnSelectedRoomChange += roomId =>
             {
-                UpdateOpenRoomLabel($"Open menu for room: {roomId}");
+                UpdateOpenRoomLabel($"Open Build Menu ({roomId})");
             };
 
             openRoomMenuBtn.RegisterCallback<MouseOverEvent>((_) =>
@@ -38,6 +38,20 @@ namespace UI
                 Debug.Log("Exit the menu button");
                 manager.uiState.StartSelectionOutHUD();
             });
+
+            var currentGoldLabel = hud.rootVisualElement.Q<Label>("GoldLabel");
+            currentGoldLabel.text = $"Gold: {manager.EconomyController.CurrentGold}";
+            manager.EconomyController.OnCurrentGoldChanged += gold =>
+            {
+                currentGoldLabel.text = $"Gold: {gold}";
+            };
+
+            var nextWaveLabel = hud.rootVisualElement.Q<Label>("NextWaveLabel");
+            nextWaveLabel.text = "Next wave: 0";
+            manager.OnNextWaveTimeChanged += time =>
+            {
+                nextWaveLabel.text = $"Next wave: {Mathf.RoundToInt(time)}";
+            };
         }
 
         public void UpdateOpenRoomLabel(string text)

@@ -22,7 +22,7 @@
     </ui:VisualElement>
     <ui:VisualElement name="RoomMenuPanel"
                       style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); position: absolute; height: auto; width: 100%; top: auto; left: auto; bottom: 0; align-items: center; flex-wrap: wrap;">
-        <ui:Button text="Open menu for room -1 " display-tooltip-when-elided="true" name="OpenRoomMenuBtn"
+        <ui:Button text="Select a room" display-tooltip-when-elided="true" name="OpenRoomMenuBtn"
                    style="font-size: 35px; height: auto; width: auto; padding-left: 50px; padding-right: 50px; padding-top: 16px; padding-bottom: 16px; -unity-background-image-tint-color: rgb(229, 100, 25); background-color: rgb(226, 186, 39); -unity-font-style: bold; border-top-left-radius: 20px; border-bottom-left-radius: 0; border-top-right-radius: 20px; border-bottom-right-radius: 0; -unity-text-outline-width: 0;"/>
     </ui:VisualElement>
 </ui:UXML>
