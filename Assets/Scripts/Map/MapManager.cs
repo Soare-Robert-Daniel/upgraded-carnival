@@ -51,8 +51,12 @@ namespace Map
         [Header("Models")]
         [SerializeField] private RoomModels roomModels;
 
+        [SerializeField] private EntityModels entityModels;
+
         [Header("Internals")]
         [SerializeField] private float currentWaveTimer;
+
+        [SerializeField] private int currentMobsPerWave;
 
         public UIState uiState;
 

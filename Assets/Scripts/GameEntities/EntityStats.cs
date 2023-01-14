@@ -42,11 +42,61 @@ namespace GameEntities
         }
     }
 
+    public enum EntityClassType
+    {
+        BaseMobClass = 0,
+        SimpleMobClass = 10,
+        SimpleFastMobClass,
+        HeavyMobClass = 100
+    }
+
+    [Serializable]
+    public class EntityClass
+    {
+        [SerializeField] protected EntityClassType classType;
+
+        public EntityClass()
+        {
+            classType = EntityClassType.BaseMobClass;
+        }
+
+        public EntityClassType ClassType => classType;
+    }
+
+    [SerializeField]
+    public class SimpleMobClass : EntityClass
+    {
+        public SimpleMobClass()
+        {
+            classType = EntityClassType.SimpleMobClass;
+        }
+    }
+
+    [SerializeField]
+    public class SimpleFastMobClass : SimpleMobClass
+    {
+        public SimpleFastMobClass()
+        {
+            classType = EntityClassType.SimpleFastMobClass;
+        }
+    }
+
+    [SerializeField]
+    public class HeavyMobClass : EntityClass
+    {
+        public HeavyMobClass()
+        {
+            classType = EntityClassType.HeavyMobClass;
+        }
+    }
+
     [Serializable]
     public class EntityStats
     {
+        [SerializeField] private EntityClass mobClass;
         [SerializeField] private float health;
         [SerializeField] private float maxHealth;
+        [SerializeField] private float baseSpeed;
         [SerializeField] private List<Rune> runes;
 
         public float Health
@@ -55,17 +105,21 @@ namespace GameEntities
             set => health = value;
         }
 
-        public float MaxHealth
-        {
-            get => maxHealth;
-            set => maxHealth = value;
-        }
+        public float MaxHealth => maxHealth;
 
         public List<Rune> Runes
         {
             get => runes;
             set => runes = value;
         }
+
+        public EntityClass MobClass
+        {
+            get => mobClass;
+            set => mobClass = value;
+        }
+
+        public float BaseSpeed => baseSpeed;
 
         public bool IsAlive()
         {

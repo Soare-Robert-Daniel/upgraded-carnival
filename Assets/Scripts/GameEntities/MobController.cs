@@ -20,6 +20,16 @@ namespace GameEntities
         [SerializeField] private Rigidbody2D rd2D;
         [SerializeField] private HealthBarController healthBarController;
 
+        private void Awake()
+        {
+            stats.MobClass = new SimpleFastMobClass();
+
+            if (stats.MobClass is SimpleFastMobClass)
+            {
+                stats.Health = 1333f;
+            }
+        }
+
         private void Start()
         {
             manager.RegisterMob(this);
