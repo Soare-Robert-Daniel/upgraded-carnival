@@ -25,6 +25,7 @@ namespace Map
         [SerializeField] private bool enableWave;
 
         [SerializeField] private float waveTimeInterval;
+        [SerializeField] private float waveMobSpawnStartOffset;
 
         [Header("Levels")]
         [SerializeField] private int levelsNum;
@@ -43,9 +44,10 @@ namespace Map
         [Header("Resources")]
         [SerializeField] private int startingLevelsNum;
 
+        [SerializeField] private GameObject mobTemplate;
         [SerializeField] private GameObject levelTemplate;
         [SerializeField] private Transform mapRootPoint;
-        [SerializeField] private Transform startingPoint;
+        [SerializeField] private Transform mobStartingPoint;
         [SerializeField] private EconomyController economyController;
 
         [Header("Models")]
@@ -57,6 +59,8 @@ namespace Map
         [SerializeField] private float currentWaveTimer;
 
         [SerializeField] private int currentMobsPerWave;
+        [SerializeField] private bool wavePrepared;
+        [SerializeField] private List<float> spawnStartPerMob;
 
         public UIState uiState;
 
@@ -90,8 +94,10 @@ namespace Map
             idToEntities = new Dictionary<int, Mob>();
             roomsDamagePerType = new Dictionary<RoomType, float>();
             roomsToDisarm = new Stack<int>();
+            spawnStartPerMob = new List<float>();
 
             currentWaveTimer = 0;
+            wavePrepared = false;
 
             CreateLayout(startingLevelsNum);
             UpdateRoomDamageFromModels();
@@ -110,12 +116,6 @@ namespace Map
             {
                 currentWaveTimer += Time.deltaTime;
                 OnNextWaveTimeChanged?.Invoke(waveTimeInterval - currentWaveTimer);
-
-                if (currentWaveTimer > waveTimeInterval)
-                {
-                    currentWaveTimer = 0f;
-                    CreateWave();
-                }
             }
         }
 
@@ -146,20 +146,83 @@ namespace Map
             ApplyDamageFromRooms();
             RetireMobs();
             DisarmRooms();
+
+            if (!wavePrepared && (waveTimeInterval - currentWaveTimer) < 5f)
+            {
+                PrepareNextRound();
+            }
+
+            if (currentWaveTimer > waveTimeInterval)
+            {
+                currentWaveTimer = 0f;
+                CreateWave();
+            }
+
+            CheckAndStartMobs();
         }
 
         #region Wave Gameplay
 
         public void CreateWave()
         {
+            wavePrepared = false;
+            var startTime = 0f;
             for (var entityId = 0; entityId < entityRoomStatus.Count; entityId++)
             {
                 if (entityRoomStatus[entityId] == EntityRoomStatus.Retired)
                 {
-                    MoveMobToRoom(entityId, 0);
-                    SetMobRoomStatus(entityId, EntityRoomStatus.Entered);
+                    SetMobRoomStatus(entityId, EntityRoomStatus.ReadyToSpawn);
+                }
+
+                if (entityRoomStatus[entityId] == EntityRoomStatus.ReadyToSpawn)
+                {
+                    spawnStartPerMob[entityId] = startTime;
+                    startTime += waveMobSpawnStartOffset;
                 }
             }
+        }
+
+        public void PrepareNextRound()
+        {
+            wavePrepared = true;
+            ReadjustMobNumbers();
+        }
+
+        private void ReadjustMobNumbers()
+        {
+            // Create more if we don't have enough mobs.
+            if (currentMobsPerWave > idToEntities.Count)
+            {
+                Debug.Log($"Create {currentMobsPerWave - idToEntities.Count} mobs");
+                for (var i = 0; i < currentMobsPerWave - idToEntities.Count; i++)
+                {
+                    CreateMob();
+                }
+            }
+        }
+
+        private void CheckAndStartMobs()
+        {
+            for (var entityId = 0; entityId < entityRoomStatus.Count; entityId++)
+            {
+                if (entityRoomStatus[entityId] != EntityRoomStatus.ReadyToSpawn || !(spawnStartPerMob[entityId] < currentWaveTimer)) continue;
+                MoveMobToRoom(entityId, 0);
+                SetMobRoomStatus(entityId, EntityRoomStatus.Entered);
+            }
+        }
+
+        private void CreateMob()
+        {
+            // By letting the room to register himself in Start, it will be available for next round.
+            var mobObj = Instantiate(mobTemplate, mobStartingPoint.transform);
+            var mobController = mobObj.GetComponent<Mob>();
+            if (mobController == null)
+            {
+                Debug.LogError("The Mob template DOES NOT HAVE THE CONTROLLER");
+                return;
+            }
+
+            mobController.Manager = this;
         }
 
         #endregion
@@ -496,9 +559,11 @@ namespace Map
             mob.id = GenMobID();
 
             entitiesInRooms.Add(0);
-            entityRoomStatus.Add(EntityRoomStatus.Entered);
+            entityRoomStatus.Add(EntityRoomStatus.ReadyToSpawn
+            );
             entitiesToId.Add(mob, mob.id);
             idToEntities.Add(mob.id, mob);
+            spawnStartPerMob.Add(3000f);
             damagePerEntity.Add(0);
         }
 
@@ -509,7 +574,7 @@ namespace Map
 
         private void MoveMobToStartingPoint(int entityId)
         {
-            idToEntities[entityId].RelocateToPosition(startingPoint.transform.position);
+            idToEntities[entityId].RelocateToPosition(mobStartingPoint.transform.position);
         }
 
         private void RetireMob(int entityId)

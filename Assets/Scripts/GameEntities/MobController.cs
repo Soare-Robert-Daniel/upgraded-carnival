@@ -22,12 +22,7 @@ namespace GameEntities
 
         private void Awake()
         {
-            stats.MobClass = new SimpleFastMobClass();
 
-            if (stats.MobClass is SimpleFastMobClass)
-            {
-                stats.Health = 1333f;
-            }
         }
 
         private void Start()
@@ -81,6 +76,12 @@ namespace GameEntities
         private void UpdateHealthBar()
         {
             healthBarController.SetPercentage(stats.RemainingHealthPercentage());
+        }
+
+        public MapManager Manager
+        {
+            get => manager;
+            set => manager = value;
         }
 
         #endregion
