@@ -40,6 +40,11 @@ namespace GameEntities
             this.duration = totalDuration;
             return this;
         }
+
+        public Rune Clone()
+        {
+            return new Rune().SetRuneType(type).SetDuration(duration);
+        }
     }
 
     public enum EntityClassType
@@ -140,6 +145,11 @@ namespace GameEntities
             runes.Add(rune);
         }
 
+        public void AddRunes(IEnumerable<Rune> runesToAdd)
+        {
+            runes.AddRange(runesToAdd);
+        }
+
         public void DecreaseRunesDuration(float time)
         {
             foreach (var rune in runes)
@@ -155,7 +165,12 @@ namespace GameEntities
 
         public void RemoveRuneType(RuneType runeTypeToRemove)
         {
-            runes = runes.Where(rune => runeTypeToRemove != rune.Type).ToList();
+            RemoveRunesType(new List<RuneType> { runeTypeToRemove });
+        }
+
+        public void RemoveRunesType(List<RuneType> runeTypesToRemove)
+        {
+            runes = runes.Where(rune => !runeTypesToRemove.Contains(rune.Type)).ToList();
         }
     }
 }

@@ -432,9 +432,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enableWave: 1
+  waveNumber: 1
   waveTimeInterval: 15
   waveMobSpawnStartOffset: 0.7
   levelsNum: 0
+  currentPricePerLevel: 0
+  pricePerLevelMultiplier: 0
   offset: {x: 0, y: 11, z: 0}
   levelsControllers: []
   roomsControllers: []
@@ -450,6 +453,7 @@ MonoBehaviour:
   economyController: {fileID: 414924789}
   roomModels: {fileID: 11400000, guid: 33ecc9ef6472f0f41856614df23ecb08, type: 2}
   entityModels: {fileID: 11400000, guid: e988f3d56fc413b41af5158aec7343cd, type: 2}
+  waveMobNumberPerWaveModel: {fileID: 11400000, guid: c6b54adc922de61488db41bdd5f9e827, type: 2}
   currentWaveTimer: 0
   currentMobsPerWave: 3
   wavePrepared: 0
@@ -795,7 +799,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 691233246}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.37, y: 22.14, z: 0}
+  m_LocalPosition: {x: -52.2, y: 22.14, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1239,6 +1243,10 @@ PrefabInstance:
     - target: {fileID: 2392953840339401500, guid: bb05c66e46aa014458bfe78ecb182d5e, type: 3}
       propertyPath: m_Name
       value: Mob
+      objectReference: {fileID: 0}
+    - target: {fileID: 2392953840339401500, guid: bb05c66e46aa014458bfe78ecb182d5e, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

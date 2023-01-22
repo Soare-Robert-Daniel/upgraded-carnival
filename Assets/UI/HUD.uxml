@@ -2,14 +2,21 @@
          xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements"
          noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <ui:VisualElement name="Top"
-                      style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); position: absolute; height: 150px; width: 100%; top: 0; left: auto; align-items: flex-start; flex-direction: row; justify-content: center; padding-top: 10px; padding-right: 10px; padding-left: 10px;">
+                      style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); position: absolute; height: auto; width: 100%; top: 0; left: auto; align-items: flex-start; flex-direction: row; justify-content: center; padding-top: 10px; padding-right: 10px; padding-left: 10px; transform-origin: left top; max-height: 250px;">
         <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); height: auto; max-width: none;">
             <ui:VisualElement name="PlayerInfo"
-                              style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: resource(&apos;personal/actionTreeBackgroundWithoutBorder&apos;); padding-left: 15px; padding-right: 15px; padding-top: 15px; padding-bottom: 15px; border-left-width: 0; border-right-width: 0; border-top-width: 0; border-bottom-width: 0; border-top-left-radius: 20px; border-bottom-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px; max-width: 280px;">
+                              style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: resource(&apos;personal/actionTreeBackgroundWithoutBorder&apos;); padding-left: 15px; padding-right: 15px; padding-top: 15px; padding-bottom: 15px; border-left-width: 0; border-right-width: 0; border-top-width: 0; border-bottom-width: 0; border-top-left-radius: 20px; border-bottom-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px; max-width: 300px;">
                 <ui:Label tabindex="-1" text="Gold: 500" display-tooltip-when-elided="true" name="GoldLabel"
                           style="font-size: 25px; -unity-font-style: bold;"/>
                 <ui:Label tabindex="-1" text="Next Wave in: 60" display-tooltip-when-elided="true" name="NextWaveLabel"
                           style="font-size: 25px; -unity-font-style: bold;"/>
+                <ui:Label tabindex="-1" text="Wave: 1" display-tooltip-when-elided="true" name="WaveNumberLabel"
+                          style="font-size: 25px; -unity-font-style: bold;"/>
+            </ui:VisualElement>
+            <ui:VisualElement name="LevelContainer"
+                              style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); margin-top: 10px;">
+                <ui:Button text="Buy Level 222500 Gold" display-tooltip-when-elided="true" name="BuyLevelBtn"
+                           style="width: 296px; -unity-font-style: bold; font-size: 20px; border-top-left-radius: 10px; border-bottom-left-radius: 10px; border-top-right-radius: 10px; border-bottom-right-radius: 10px; background-color: rgb(8, 245, 238);"/>
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row-reverse;">
@@ -21,7 +28,7 @@
         </ui:VisualElement>
     </ui:VisualElement>
     <ui:VisualElement name="RoomMenuPanel"
-                      style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); position: absolute; height: auto; width: 100%; top: auto; left: auto; bottom: 0; align-items: center; flex-wrap: wrap;">
+                      style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); position: absolute; height: auto; width: 100%; top: auto; left: auto; bottom: 0; align-items: center; flex-wrap: wrap; transform-origin: bottom;">
         <ui:Button text="Select a room" display-tooltip-when-elided="true" name="OpenRoomMenuBtn"
                    style="font-size: 35px; height: auto; width: auto; padding-left: 50px; padding-right: 50px; padding-top: 16px; padding-bottom: 16px; -unity-background-image-tint-color: rgb(229, 100, 25); background-color: rgb(226, 186, 39); -unity-font-style: bold; border-top-left-radius: 20px; border-bottom-left-radius: 0; border-top-right-radius: 20px; border-bottom-right-radius: 0; -unity-text-outline-width: 0;"/>
     </ui:VisualElement>

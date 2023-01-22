@@ -16,4 +16,10 @@ MonoBehaviour:
   roomName: Constant Attack
   fireRate: 5
   price: 25
+  baseDamage: 5
+  runeAction:
+  - type: 1
+    damage: 1
+    duration: 0
+    actionType: 0
   sprite: {fileID: 21300000, guid: ce4337688094f7f428e1bef1b45b143d, type: 3}

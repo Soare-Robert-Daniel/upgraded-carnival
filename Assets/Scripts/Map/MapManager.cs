@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Economy;
 using GameEntities;
+using Map.Components;
 using Map.Room;
 using UI;
 using UnityEngine;
@@ -24,12 +24,15 @@ namespace Map
         [Header("Wave")]
         [SerializeField] private bool enableWave;
 
+        [SerializeField] private int waveNumber;
         [SerializeField] private float waveTimeInterval;
         [SerializeField] private float waveMobSpawnStartOffset;
 
         [Header("Levels")]
         [SerializeField] private int levelsNum;
 
+        [SerializeField] private float currentPricePerLevel;
+        [SerializeField] private float pricePerLevelMultiplier;
         [SerializeField] private Vector3 offset;
         [SerializeField] private List<LevelController> levelsControllers;
 
@@ -54,6 +57,7 @@ namespace Map
         [SerializeField] private RoomModels roomModels;
 
         [SerializeField] private EntityModels entityModels;
+        [SerializeField] private WaveMobNumberPerWaveModel waveMobNumberPerWaveModel;
 
         [Header("Internals")]
         [SerializeField] private float currentWaveTimer;
@@ -66,21 +70,25 @@ namespace Map
 
         [SerializeField] private int selectedRoomId;
 
-        private Dictionary<Mob, int> entitiesToId;
-        private Dictionary<int, Mob> idToEntities;
+        private Dictionary<Mob, int> _entitiesToId;
+        private Dictionary<int, Mob> _idToEntities;
 
-        private int mobGenID;
-        private int roomGenID;
-        private Dictionary<RoomType, float> roomsDamagePerType;
-        private Stack<int> roomsToDisarm;
+        private int _mobGenID;
+        private Dictionary<RoomType, RoomDamageStrategy> _roomDamageStrategies;
+        private int _roomGenID;
+        private Dictionary<RoomType, float> _roomsDamagePerType;
+        private Stack<int> _roomsToDisarm;
+
+        private Dictionary<RoomType, RoomModel> _roomTypeToModels;
 
 
         public EconomyController EconomyController => economyController;
 
         private void Awake()
         {
-            mobGenID = 0;
-            roomGenID = 0;
+            _mobGenID = 0;
+            _roomGenID = 0;
+            levelsNum = 0;
 
             levelsControllers = new List<LevelController>();
             roomsControllers = new List<RoomController>();
@@ -90,14 +98,25 @@ namespace Map
             roomsCanFire = new List<bool>();
             entityRoomStatus = new List<EntityRoomStatus>();
 
-            entitiesToId = new Dictionary<Mob, int>();
-            idToEntities = new Dictionary<int, Mob>();
-            roomsDamagePerType = new Dictionary<RoomType, float>();
-            roomsToDisarm = new Stack<int>();
+            _entitiesToId = new Dictionary<Mob, int>();
+            _idToEntities = new Dictionary<int, Mob>();
+            _roomsDamagePerType = new Dictionary<RoomType, float>();
+            _roomsToDisarm = new Stack<int>();
             spawnStartPerMob = new List<float>();
+            _roomDamageStrategies = new Dictionary<RoomType, RoomDamageStrategy>();
 
             currentWaveTimer = 0;
             wavePrepared = false;
+
+            _roomTypeToModels = new Dictionary<RoomType, RoomModel>();
+            foreach (var roomModel in roomModels.list)
+            {
+                _roomTypeToModels.Add(roomModel.roomType, roomModel);
+
+                var strategy = new RoomDamageStrategy();
+                strategy.LoadFromModel(roomModel);
+                _roomDamageStrategies.Add(roomModel.roomType, strategy);
+            }
 
             CreateLayout(startingLevelsNum);
             UpdateRoomDamageFromModels();
@@ -125,7 +144,7 @@ namespace Map
             {
                 if (entityRoomStatus[entityId] == EntityRoomStatus.Entered)
                 {
-                    idToEntities[entityId].StartMovingInRoom(roomsControllers[entitiesInRooms[entityId]]);
+                    _idToEntities[entityId].StartMovingInRoom(roomsControllers[entitiesInRooms[entityId]]);
                     SetMobRoomStatus(entityId, EntityRoomStatus.Moving);
                 }
 
@@ -142,8 +161,7 @@ namespace Map
                 }
             }
 
-            AddRunesToMobsFromRooms();
-            ApplyDamageFromRooms();
+            HandleRuneAndDamagePerEntity();
             RetireMobs();
             DisarmRooms();
 
@@ -155,7 +173,9 @@ namespace Map
             if (currentWaveTimer > waveTimeInterval)
             {
                 currentWaveTimer = 0f;
+                waveNumber += 1;
                 CreateWave();
+                OnNextWaveStarted?.Invoke(waveNumber);
             }
 
             CheckAndStartMobs();
@@ -185,16 +205,30 @@ namespace Map
         public void PrepareNextRound()
         {
             wavePrepared = true;
+
+            // Refactor this.
+            foreach (var mobsNumberInterval in waveMobNumberPerWaveModel.intervals)
+            {
+                if (mobsNumberInterval.fromWave <= waveNumber + 1) // We prepare in advance.
+                {
+                    currentMobsPerWave = mobsNumberInterval.mobsNumber;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
             ReadjustMobNumbers();
         }
 
         private void ReadjustMobNumbers()
         {
             // Create more if we don't have enough mobs.
-            if (currentMobsPerWave > idToEntities.Count)
+            if (currentMobsPerWave > _idToEntities.Count)
             {
-                Debug.Log($"Create {currentMobsPerWave - idToEntities.Count} mobs");
-                for (var i = 0; i < currentMobsPerWave - idToEntities.Count; i++)
+                Debug.Log($"Create {currentMobsPerWave - _idToEntities.Count} mobs");
+                for (var i = 0; i < currentMobsPerWave - _idToEntities.Count; i++)
                 {
                     CreateMob();
                 }
@@ -232,6 +266,9 @@ namespace Map
         public event Action OnInitUI;
         public event Action<int> OnSelectedRoomChange;
         public event Action<float> OnNextWaveTimeChanged;
+        public event Action<int> OnNextWaveStarted;
+
+        public event Action<int, float> OnLevelUpdated;
 
         #endregion
 
@@ -244,14 +281,18 @@ namespace Map
                 return;
             }
 
-            for (int i = 0; i < levels - levelsNum; i++)
+            while (levels > levelsNum)
             {
-                var obj = Instantiate(levelTemplate, mapRootPoint.position + (levelsNum + i) * offset, Quaternion.identity);
-                var levelController = obj.GetComponent<LevelController>();
-                RegisterLevel(levelController);
+                AddLevelToLayout();
             }
+        }
 
-            levelsNum = levels;
+        public void AddLevelToLayout()
+        {
+            var obj = Instantiate(levelTemplate, mapRootPoint.position + (levelsNum) * offset, Quaternion.identity);
+            var levelController = obj.GetComponent<LevelController>();
+            RegisterLevel(levelController);
+            levelsNum += 1;
         }
 
         private void RegisterLevel(LevelController level)
@@ -288,8 +329,8 @@ namespace Map
 
         private int GenRoomID()
         {
-            var id = roomGenID;
-            roomGenID += 1;
+            var id = _roomGenID;
+            _roomGenID += 1;
             return id;
         }
 
@@ -300,83 +341,62 @@ namespace Map
 
         private void ChangeRoomTypeForSelectedRoom(RoomType roomType)
         {
-            if (!IsSelectedRoomValid()) return;
-            foreach (var roomModel in RoomModels)
-            {
-                if (roomModel.roomType == roomType)
-                {
-                    if (economyController.CanSpend(Currency.Gold, roomModel.price))
-                    {
-                        economyController.SpendCurrency(Currency.Gold, roomModel.price);
-                        roomsControllers[selectedRoomId].RoomState.LoadFromModel(roomModel);
-                        roomsControllers[selectedRoomId].UpdateVisual(roomModel);
-                    }
-
-                    break;
-                }
-            }
+            roomsControllers[selectedRoomId].RoomState.LoadFromModel(_roomTypeToModels[roomType]);
+            roomsControllers[selectedRoomId].UpdateVisual(_roomTypeToModels[roomType]);
         }
 
         public void TryBuyRoomForSelectedRoom(RoomType roomType)
         {
+            if (!IsSelectedRoomValid()) return;
+            if (!economyController.CanSpend(Currency.Gold, _roomTypeToModels[roomType].price)) return;
+
+            economyController.SpendCurrency(Currency.Gold, _roomTypeToModels[roomType].price);
             ChangeRoomTypeForSelectedRoom(roomType);
         }
+
+        public void TryBuyLevel()
+        {
+            if (!economyController.CanSpend(Currency.Gold, currentPricePerLevel)) return;
+
+            economyController.SpendCurrency(Currency.Gold, currentPricePerLevel);
+            AddLevelToLayout();
+            IncreaseBuyLevelPrice();
+            OnLevelUpdated?.Invoke(levelsNum, currentPricePerLevel);
+        }
+
+        private void IncreaseBuyLevelPrice()
+        {
+            // FUTURE: Make this a model.
+            currentPricePerLevel = MathF.Round(currentPricePerLevel * pricePerLevelMultiplier);
+        }
+
+        public float NewCurrentPricePerLevel => currentPricePerLevel;
 
         #endregion
 
         #region Room Gameplay
 
-        private void AddRunesToMobsFromRooms()
-        {
-            for (var entityId = 0; entityId < entitiesInRooms.Count; entityId++)
-            {
-                var roomId = entitiesInRooms[entityId];
-                if (roomsCanFire[roomId])
-                {
-                    AddRunesToMobFromRoom(entityId, roomId);
-                    AddToDisarmRoom(roomId);
-                }
-            }
-        }
-
-        private void AddRunesToMobFromRoom(int entityId, int roomId)
-        {
-            var roomType = roomsControllers[roomId].RoomState.RoomType;
-            var mob = idToEntities[entityId];
-
-            switch (roomType)
-            {
-                case RoomType.Empty:
-                    break;
-                case RoomType.SlowRune:
-                    mob.stats.AddRune(rune: new Rune().SetRuneType(RuneType.Slow).SetDuration(120));
-                    break;
-                case RoomType.AttackRune:
-                    mob.stats.AddRune(rune: new Rune().SetRuneType(RuneType.Attack).SetDuration(120));
-                    break;
-                case RoomType.ConstantAttackFire:
-                    break;
-                case RoomType.BurstAttackFire:
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
-
-        private void ApplyDamageFromRooms()
+        private void HandleRuneAndDamagePerEntity()
         {
             // I wonder if we can put this on a Job.
             for (var entityId = 0; entityId < entitiesInRooms.Count; entityId++)
             {
                 var roomId = entitiesInRooms[entityId];
-                if (roomsCanFire[roomId])
-                {
+                if (!roomsCanFire[roomId]) continue;
 
-                    ApplyRuneActionToEntityFromRoom(entityId, roomId);
-                    ApplyDamageToMob(entityId);
-                    AddToDisarmRoom(roomId);
-                    ShouldRetire(entityId);
-                }
+                var mob = _idToEntities[entityId];
+                var roomType = roomsControllers[roomId].RoomState.RoomType;
+
+                _roomDamageStrategies[roomType].BeforeDamageCalculationAction(_idToEntities[entityId].stats);
+
+                damagePerEntity[entityId] = _roomDamageStrategies[roomType].CalculateDamageForMob(_idToEntities[entityId].stats);
+                ApplyDamageToMob(entityId);
+
+                _roomDamageStrategies[roomType].AfterDamageCalculationAction(_idToEntities[entityId].stats);
+                mob.AdjustSpeed();
+
+                AddToDisarmRoom(roomId);
+                ShouldRetire(entityId);
             }
         }
 
@@ -388,7 +408,7 @@ namespace Map
 
         private void ShouldRetire(int entityId)
         {
-            if (!idToEntities[entityId].stats.IsAlive())
+            if (!_idToEntities[entityId].stats.IsAlive())
             {
                 SetMobRoomStatus(entityId, EntityRoomStatus.Retired);
             }
@@ -407,69 +427,6 @@ namespace Map
             }
         }
 
-        private void ApplyRuneActionToEntityFromRoom(int entityId, int roomId)
-        {
-            damagePerEntity[entityId] = 0f;
-
-            var roomState = roomsControllers[roomId].RoomState;
-            var roomType = roomsControllers[roomId].RoomState.RoomType;
-            var mob = idToEntities[entityId];
-
-            switch (roomType)
-            {
-                case RoomType.Empty:
-                    break;
-                case RoomType.SlowRune:
-                    mob.AdjustSpeed();
-                    break;
-                case RoomType.AttackRune:
-                    break;
-                case RoomType.ConstantAttackFire:
-                    damagePerEntity[entityId] = 5f; // flat damage
-                    damagePerEntity[entityId] += mob.stats.Runes.Count(x => x.Type == RuneType.Attack) * 1f;
-                    break;
-                case RoomType.BurstAttackFire:
-                    damagePerEntity[entityId] = mob.stats.Runes.Count(x => x.Type == RuneType.Attack) * 5f;
-                    mob.stats.RemoveRuneType(RuneType.Attack);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            switch (roomState.VerticalSym)
-            {
-                case SymbolStateV.None:
-                    break;
-                case SymbolStateV.Top:
-
-                    break;
-                case SymbolStateV.Bottom:
-
-                    break;
-                case SymbolStateV.TopAndBottom:
-
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            switch (roomState.HorizontalSym)
-            {
-                case SymbolStateH.None:
-                    break;
-                case SymbolStateH.Left:
-
-                    break;
-                case SymbolStateH.Right:
-
-                    break;
-                case SymbolStateH.RightAndLeft:
-
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
 
         private void MoveMobToRoom(int entityId, int roomId)
         {
@@ -501,7 +458,7 @@ namespace Map
         {
             foreach (var roomModel in RoomModels)
             {
-                roomsDamagePerType.Add(roomModel.roomType, 1f);
+                _roomsDamagePerType.Add(roomModel.roomType, 1f);
             }
         }
 
@@ -530,14 +487,14 @@ namespace Map
 
         private void AddToDisarmRoom(int roomId)
         {
-            roomsToDisarm.Push(roomId);
+            _roomsToDisarm.Push(roomId);
         }
 
         private void DisarmRooms()
         {
-            while (roomsToDisarm.Count > 0)
+            while (_roomsToDisarm.Count > 0)
             {
-                ResetRoomFireStatus(roomsToDisarm.Pop());
+                ResetRoomFireStatus(_roomsToDisarm.Pop());
             }
         }
 
@@ -549,8 +506,8 @@ namespace Map
 
         private int GenMobID()
         {
-            var id = mobGenID;
-            mobGenID += 1;
+            var id = _mobGenID;
+            _mobGenID += 1;
             return id;
         }
 
@@ -561,20 +518,20 @@ namespace Map
             entitiesInRooms.Add(0);
             entityRoomStatus.Add(EntityRoomStatus.ReadyToSpawn
             );
-            entitiesToId.Add(mob, mob.id);
-            idToEntities.Add(mob.id, mob);
+            _entitiesToId.Add(mob, mob.id);
+            _idToEntities.Add(mob.id, mob);
             spawnStartPerMob.Add(3000f);
             damagePerEntity.Add(0);
         }
 
         private void ApplyDamageToMob(int entityId)
         {
-            idToEntities[entityId].ApplyDamage(damagePerEntity[entityId]);
+            _idToEntities[entityId].ApplyDamage(damagePerEntity[entityId]);
         }
 
         private void MoveMobToStartingPoint(int entityId)
         {
-            idToEntities[entityId].RelocateToPosition(mobStartingPoint.transform.position);
+            _idToEntities[entityId].RelocateToPosition(mobStartingPoint.transform.position);
         }
 
         private void RetireMob(int entityId)
@@ -585,7 +542,7 @@ namespace Map
         private void UpdateMobsRunes()
         {
             var time = Time.deltaTime;
-            foreach (var mob in idToEntities.Values)
+            foreach (var mob in _idToEntities.Values)
             {
                 mob.stats.DecreaseRunesDuration(time);
                 mob.stats.RemoveExpiredRunes();
@@ -594,7 +551,7 @@ namespace Map
 
         private void CollectBountyFromMob(int entityId)
         {
-            economyController.AddCurrency(idToEntities[entityId].bounty.currency, idToEntities[entityId].bounty.value);
+            economyController.AddCurrency(_idToEntities[entityId].bounty.currency, _idToEntities[entityId].bounty.value);
         }
 
         #endregion
