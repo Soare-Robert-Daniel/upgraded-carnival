@@ -31,6 +31,7 @@ namespace Map.Room
         public string roomName;
 
         public float fireRate;
+        public float fireDuration;
 
         [Header("Economy")]
         public float price;

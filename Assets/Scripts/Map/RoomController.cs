@@ -3,6 +3,7 @@ using GameEntities;
 using Map.Room;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Map
 {
@@ -12,7 +13,11 @@ namespace Map
         [SerializeField] private bool canFire;
 
         [SerializeField] private float currentFireInterval;
-        [SerializeField] private RoomState roomState;
+        [SerializeField] private float currentFireDuration;
+
+        [FormerlySerializedAs("roomState")] [SerializeField]
+        private RoomSettings roomSettings;
+
         [SerializeField] private bool isSelected;
 
         [Header("Settings")]
@@ -50,7 +55,7 @@ namespace Map
             set => canFire = value;
         }
 
-        public RoomState RoomState => roomState;
+        public RoomSettings RoomSettings => roomSettings;
 
         private void Start()
         {
@@ -70,16 +75,16 @@ namespace Map
 
             currentFireInterval += Time.deltaTime;
 
-            if (currentFireInterval > roomState.FireRate)
+            if (currentFireInterval > roomSettings.FireRate + roomSettings.FireDuration)
             {
                 mapManager.MarkRoomToFire(id);
                 ResetFire();
             }
         }
 
-        public void UpdateState(RoomState newState)
+        public void UpdateState(RoomSettings newSettings)
         {
-            roomState = newState;
+            roomSettings = newSettings;
             UpdateSymbols();
         }
 
@@ -112,7 +117,7 @@ namespace Map
 
         public void UpdateRoomName()
         {
-            roomName.text = $"Room {id} {roomState.RoomType}";
+            roomName.text = $"Room {id} {roomSettings.RoomType}";
         }
 
         public void UpdateVisual(RoomModel roomModel)
@@ -123,8 +128,8 @@ namespace Map
 
         public void UpdateSymbols()
         {
-            symbolController.UpdateVerticalSymbols(roomState.VerticalSym);
-            symbolController.UpdateHorizontalSymbols(roomState.HorizontalSym);
+            symbolController.UpdateVerticalSymbols(roomSettings.VerticalSym);
+            symbolController.UpdateHorizontalSymbols(roomSettings.HorizontalSym);
         }
 
         public void Select()

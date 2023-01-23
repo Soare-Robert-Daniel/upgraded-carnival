@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   roomType: 3
   roomName: Constant Attack
-  fireRate: 5
+  fireRate: 4
+  fireDuration: 2
   price: 25
   baseDamage: 5
   runeAction:

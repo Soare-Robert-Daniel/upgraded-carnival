@@ -13,12 +13,13 @@ namespace Map.Room
     }
 
     [Serializable]
-    public class RoomState
+    public class RoomSettings
     {
         [Header("Attributes")]
         [SerializeField] private RoomType roomType;
 
         [SerializeField] private float fireRate;
+        [SerializeField] private float fireDuration;
 
         [Header("Visuals")]
         [SerializeField] private SymbolStateV verticalSym;
@@ -49,6 +50,12 @@ namespace Map.Room
             set => horizontalSym = value;
         }
 
+        public float FireDuration
+        {
+            get => fireDuration;
+            set => fireDuration = value;
+        }
+
         public void LoadFromModel(RoomModel roomModel)
         {
             if (roomModel == null)
@@ -58,6 +65,7 @@ namespace Map.Room
 
             roomType = roomModel.roomType;
             fireRate = roomModel.fireRate;
+            fireDuration = roomModel.fireDuration;
         }
     }
 }

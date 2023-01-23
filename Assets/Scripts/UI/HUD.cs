@@ -6,7 +6,8 @@ namespace UI
 {
     public class HUD : MonoBehaviour
     {
-        [SerializeField] private MapManager manager;
+        [SerializeField] private GameManager gameManager;
+        [SerializeField] private MapManager mapManager;
         [SerializeField] private UIDocument hud;
         [SerializeField] private RoomMenu roomMenu;
 
@@ -14,7 +15,7 @@ namespace UI
 
         private void Awake()
         {
-            manager.OnInitUI += InitUI;
+            mapManager.OnInitUI += InitUI;
         }
 
         public void InitUI()
@@ -22,7 +23,7 @@ namespace UI
             openRoomMenuBtn = hud.rootVisualElement.Q<Button>("OpenRoomMenuBtn");
             openRoomMenuBtn.clicked += roomMenu.OpenMenu;
 
-            manager.OnSelectedRoomChange += roomId =>
+            mapManager.OnSelectedRoomChange += roomId =>
             {
                 UpdateOpenRoomLabel($"Open Build Menu ({roomId})");
             };
@@ -30,43 +31,50 @@ namespace UI
             openRoomMenuBtn.RegisterCallback<MouseOverEvent>((_) =>
             {
                 Debug.Log("Over the menu button");
-                manager.uiState.StopSelectionOverHud();
+                mapManager.uiState.StopSelectionOverHud();
             });
 
             openRoomMenuBtn.RegisterCallback<MouseOutEvent>((_) =>
             {
                 Debug.Log("Exit the menu button");
-                manager.uiState.StartSelectionOutHUD();
+                mapManager.uiState.StartSelectionOutHUD();
             });
 
             var currentGoldLabel = hud.rootVisualElement.Q<Label>("GoldLabel");
-            currentGoldLabel.text = $"Gold: {manager.EconomyController.CurrentGold}";
-            manager.EconomyController.OnCurrentGoldChanged += gold =>
+            currentGoldLabel.text = $"Gold: {mapManager.EconomyController.CurrentGold}";
+            mapManager.EconomyController.OnCurrentGoldChanged += gold =>
             {
                 currentGoldLabel.text = $"Gold: {gold}";
             };
 
             var nextWaveLabel = hud.rootVisualElement.Q<Label>("NextWaveLabel");
             nextWaveLabel.text = "Next wave: 0";
-            manager.OnNextWaveTimeChanged += time =>
+            mapManager.OnNextWaveTimeChanged += time =>
             {
                 nextWaveLabel.text = $"Next wave: {Mathf.RoundToInt(time)}";
             };
 
             var currentWaveNumberLabel = hud.rootVisualElement.Q<Label>("WaveNumberLabel");
             currentWaveNumberLabel.text = $"Wave: 1";
-            manager.OnNextWaveStarted += waveNumber =>
+            mapManager.OnNextWaveStarted += waveNumber =>
             {
                 currentWaveNumberLabel.text = $"Wave: {waveNumber + 1}";
             };
 
             var currentBuyLevelBtn = hud.rootVisualElement.Q<Button>("BuyLevelBtn");
-            currentBuyLevelBtn.text = $"Buy Level ({manager.NewCurrentPricePerLevel} Gold)";
-            currentBuyLevelBtn.clicked += () => manager.TryBuyLevel();
-            manager.OnLevelUpdated += ((i, f) =>
+            currentBuyLevelBtn.text = $"Buy Level ({mapManager.NewCurrentPricePerLevel} Gold)";
+            currentBuyLevelBtn.clicked += () => mapManager.TryBuyLevel();
+            mapManager.OnLevelUpdated += ((i, f) =>
             {
                 currentBuyLevelBtn.text = $"Buy Level ({f} Gold)";
             });
+
+            var currentPlayerRemainingHealthLabel = hud.rootVisualElement.Q<Label>("RemainingHealthLabel");
+            currentPlayerRemainingHealthLabel.text = $"Health: {gameManager.PlayerHealth}";
+            gameManager.OnPlayerHealthChanged += health =>
+            {
+                currentPlayerRemainingHealthLabel.text = $"Health: {health}";
+            };
         }
 
         public void UpdateOpenRoomLabel(string text)

@@ -153,6 +153,7 @@ namespace Map
                     if (HasMobPassedTheFinalRoom(entityId))
                     {
                         SetMobRoomStatus(entityId, EntityRoomStatus.Retired);
+                        OnMobReachedFinalRoom?.Invoke(_idToEntities[entityId]);
                     }
                     else
                     {
@@ -270,6 +271,8 @@ namespace Map
 
         public event Action<int, float> OnLevelUpdated;
 
+        public event Action<Mob> OnMobReachedFinalRoom;
+
         #endregion
 
         #region Map Generation
@@ -341,7 +344,7 @@ namespace Map
 
         private void ChangeRoomTypeForSelectedRoom(RoomType roomType)
         {
-            roomsControllers[selectedRoomId].RoomState.LoadFromModel(_roomTypeToModels[roomType]);
+            roomsControllers[selectedRoomId].RoomSettings.LoadFromModel(_roomTypeToModels[roomType]);
             roomsControllers[selectedRoomId].UpdateVisual(_roomTypeToModels[roomType]);
         }
 
@@ -385,7 +388,7 @@ namespace Map
                 if (!roomsCanFire[roomId]) continue;
 
                 var mob = _idToEntities[entityId];
-                var roomType = roomsControllers[roomId].RoomState.RoomType;
+                var roomType = roomsControllers[roomId].RoomSettings.RoomType;
 
                 _roomDamageStrategies[roomType].BeforeDamageCalculationAction(_idToEntities[entityId].stats);
 

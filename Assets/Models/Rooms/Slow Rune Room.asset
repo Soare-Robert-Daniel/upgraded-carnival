@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   roomType: 1
   roomName: Slow Rune Room
-  fireRate: 1
+  fireRate: 10
+  fireDuration: 6
   price: 50
   baseDamage: 0
   runeAction:

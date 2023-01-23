@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   roomType: 2
   roomName: Attack Rune
-  fireRate: 1
+  fireRate: 4
+  fireDuration: 1
   price: 50
   baseDamage: 0
   runeAction:

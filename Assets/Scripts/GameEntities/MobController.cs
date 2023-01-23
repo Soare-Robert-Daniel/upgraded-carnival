@@ -45,7 +45,7 @@ namespace GameEntities
 
         public void AdjustSpeed()
         {
-            var slow = stats.Runes.Count(x => x.Type == RuneType.Slow) * 0.1f;
+            var slow = Mathf.Clamp(stats.Runes.Count(x => x.Type == RuneType.Slow) * 0.1f, 0f, 0.8f);
             rd2D.velocity = movementDirection * (speed * (1f - slow));
         }
 
