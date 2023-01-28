@@ -1,4 +1,5 @@
-﻿using Map;
+﻿using System;
+using Map;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -17,6 +18,8 @@ namespace UI
         {
             mapManager.OnInitUI += InitUI;
         }
+
+        public event Action OnSettingsBtnClicked;
 
         public void InitUI()
         {
@@ -64,10 +67,10 @@ namespace UI
             var currentBuyLevelBtn = hud.rootVisualElement.Q<Button>("BuyLevelBtn");
             currentBuyLevelBtn.text = $"Buy Level ({mapManager.NewCurrentPricePerLevel} Gold)";
             currentBuyLevelBtn.clicked += () => mapManager.TryBuyLevel();
-            mapManager.OnLevelUpdated += ((i, f) =>
+            mapManager.OnLevelUpdated += (i, f) =>
             {
                 currentBuyLevelBtn.text = $"Buy Level ({f} Gold)";
-            });
+            };
 
             var currentPlayerRemainingHealthLabel = hud.rootVisualElement.Q<Label>("RemainingHealthLabel");
             currentPlayerRemainingHealthLabel.text = $"Health: {gameManager.PlayerHealth}";
@@ -75,6 +78,9 @@ namespace UI
             {
                 currentPlayerRemainingHealthLabel.text = $"Health: {health}";
             };
+
+            var settingsBtn = hud.rootVisualElement.Q<Button>("SettingsBtn");
+            settingsBtn.clicked += () => OnSettingsBtnClicked?.Invoke();
         }
 
         public void UpdateOpenRoomLabel(string text)

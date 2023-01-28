@@ -26,6 +26,8 @@
                               style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); min-width: auto; min-height: auto; max-width: 500px; flex-direction: row-reverse;">
                 <ui:Button text="Settings" display-tooltip-when-elided="true" name="SettingsBtn"
                            style="font-size: 24px; max-width: 150px; -unity-font-style: bold; border-top-left-radius: 20px; border-bottom-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px; background-color: rgb(0, 183, 121); color: rgb(0, 0, 0);"/>
+                <ui:Button text="Pause" display-tooltip-when-elided="true" name="PauseBtn"
+                           style="font-size: 24px; max-width: 150px; -unity-font-style: bold; border-top-left-radius: 20px; border-bottom-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px; background-color: rgb(0, 200, 204); color: rgb(0, 0, 0); margin-right: 10px;"/>
                 <ui:VisualElement
                         style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); align-items: center; justify-content: center; background-image: resource(&apos;personal/actionTreeBackgroundWithoutBorder&apos;); -unity-background-image-tint-color: rgb(255, 43, 0); border-top-left-radius: 20px; border-bottom-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px; margin-right: 20px;">
                     <ui:Label tabindex="-1" text="Health 2000" display-tooltip-when-elided="true"

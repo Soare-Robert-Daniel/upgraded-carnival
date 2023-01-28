@@ -1,0 +1,25 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements"
+         xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements"
+         noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement name="Container"
+                      style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); width: 100%; height: 100%; justify-content: center; align-items: center;">
+        <ui:VisualElement name="SecondContainer"
+                          style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); justify-content: center; align-items: center; width: 100%; padding-left: 15%; padding-right: 15%; padding-top: 50px; padding-bottom: 50px; background-image: resource(&apos;personal/actionTreeBackgroundWithoutBorder&apos;); -unity-background-image-tint-color: rgb(236, 145, 0);">
+            <ui:VisualElement name="VisualElement"
+                              style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); max-height: 300px; justify-content: flex-end; align-items: center; margin-left: 10px; margin-right: 10px; margin-top: 10px; margin-bottom: 30px; background-image: resource(&apos;personal/actionTreeBackgroundWithoutBorder&apos;); padding-left: 40px; padding-right: 40px; padding-top: 20px; padding-bottom: 20px; border-top-left-radius: 20px; border-bottom-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px; -unity-background-image-tint-color: rgb(3, 237, 188); width: 100%; align-self: center;">
+                <ui:Label tabindex="-1" text="You are Victorious" display-tooltip-when-elided="true" name="MessageLabel"
+                          style="font-size: 65px; justify-content: center; align-items: center; align-self: center; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0;"/>
+            </ui:VisualElement>
+            <ui:Button text="Restart" display-tooltip-when-elided="true" name="RestartBtn"
+                       style="font-size: 40px; width: 100%; border-top-left-radius: 10px; border-bottom-left-radius: 10px; border-top-right-radius: 10px; border-bottom-right-radius: 10px; padding-left: 20px; padding-right: 20px; padding-top: 15px; padding-bottom: 15px; margin-bottom: 20px;"/>
+            <ui:Button text="Save Game" display-tooltip-when-elided="true" name="SaveGameBtn"
+                       style="font-size: 40px; width: 100%; border-top-left-radius: 10px; border-bottom-left-radius: 10px; border-top-right-radius: 10px; border-bottom-right-radius: 10px; padding-left: 20px; padding-right: 20px; padding-top: 15px; padding-bottom: 15px; margin-bottom: 20px;"/>
+            <ui:Button text="Options" display-tooltip-when-elided="true" name="OptionsBtn"
+                       style="font-size: 40px; width: 100%; border-top-left-radius: 10px; border-bottom-left-radius: 10px; border-top-right-radius: 10px; border-bottom-right-radius: 10px; padding-left: 20px; padding-right: 20px; padding-top: 15px; padding-bottom: 15px; margin-bottom: 20px;"/>
+            <ui:Button text="Go to Main Menu" display-tooltip-when-elided="true" name="MainMenuBtn"
+                       style="font-size: 40px; width: 100%; border-top-left-radius: 10px; border-bottom-left-radius: 10px; border-top-right-radius: 10px; border-bottom-right-radius: 10px; padding-left: 20px; padding-right: 20px; padding-top: 15px; padding-bottom: 15px; margin-bottom: 20px;"/>
+            <ui:Button text="Go back" display-tooltip-when-elided="true" name="BackBtn"
+                       style="font-size: 40px; width: 100%; border-top-left-radius: 10px; border-bottom-left-radius: 10px; border-top-right-radius: 10px; border-bottom-right-radius: 10px; padding-left: 20px; padding-right: 20px; padding-top: 15px; padding-bottom: 15px; background-color: rgb(250, 12, 0); -unity-font-style: bold; color: rgb(255, 255, 255);"/>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
