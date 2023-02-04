@@ -18,7 +18,7 @@ MonoBehaviour:
   fireDuration: 2
   price: 25
   baseDamage: 5
-  runeAction:
+  runesAction:
   - type: 1
     damage: 1
     duration: 0

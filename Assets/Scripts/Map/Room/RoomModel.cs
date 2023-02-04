@@ -39,7 +39,7 @@ namespace Map.Room
         [Header("Damage")]
         public float baseDamage;
 
-        public List<RoomsRuneWrapper> runeAction;
+        public List<RoomsRuneWrapper> runesAction;
 
         [Header("Assets")]
         public Sprite sprite;

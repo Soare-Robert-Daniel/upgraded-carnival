@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Economy;
 using GameEntities;
 using Map.Components;
@@ -65,6 +67,7 @@ namespace Map
         [SerializeField] private int currentMobsPerWave;
         [SerializeField] private bool wavePrepared;
         [SerializeField] private List<float> spawnStartPerMob;
+        [SerializeField] private RuneStorage runeStorage;
 
         public UIState uiState;
 
@@ -107,6 +110,8 @@ namespace Map
 
             currentWaveTimer = 0;
             wavePrepared = false;
+
+            runeStorage = new RuneStorage(200);
 
             _roomTypeToModels = new Dictionary<RoomType, RoomModel>();
             foreach (var roomModel in roomModels.list)
@@ -162,27 +167,40 @@ namespace Map
                 }
             }
 
+            runeStorage.UpdateRunesDurations(Time.deltaTime);
             HandleRuneAndDamagePerEntity();
             RetireMobs();
             DisarmRooms();
 
-            if (!wavePrepared && (waveTimeInterval - currentWaveTimer) < 5f)
+            if (!wavePrepared && waveTimeInterval - currentWaveTimer < 5f)
             {
                 PrepareNextRound();
             }
 
             if (currentWaveTimer > waveTimeInterval)
             {
-                currentWaveTimer = 0f;
-                waveNumber += 1;
-                CreateWave();
-                OnNextWaveStarted?.Invoke(waveNumber);
+                StartWave();
             }
 
             CheckAndStartMobs();
         }
 
         #region Wave Gameplay
+
+        public void StartWave()
+        {
+            currentWaveTimer = 0f;
+            waveNumber += 1;
+            CreateWave();
+            OnNextWaveStarted?.Invoke(waveNumber);
+        }
+
+        public IEnumerator ManualStartWave()
+        {
+            PrepareNextRound();
+            yield return new WaitForSeconds(1.0f);
+            StartWave();
+        }
 
         public void CreateWave()
         {
@@ -225,11 +243,16 @@ namespace Map
 
         private void ReadjustMobNumbers()
         {
-            // Create more if we don't have enough mobs.
-            if (currentMobsPerWave > _idToEntities.Count)
+            // Create more if we don't have enough _available_ mobs.
+            // TODO: Add new _available_ mobs 
+
+            // Count the mobs with status ReadyToSpawn or Retied.
+            var readyToSpawnMobs = entityRoomStatus.Count(t => t is EntityRoomStatus.ReadyToSpawn or EntityRoomStatus.Retired);
+
+            if (currentMobsPerWave > readyToSpawnMobs)
             {
-                Debug.Log($"Create {currentMobsPerWave - _idToEntities.Count} mobs");
-                for (var i = 0; i < currentMobsPerWave - _idToEntities.Count; i++)
+                Debug.Log($"Create {currentMobsPerWave - readyToSpawnMobs} mobs");
+                for (var i = 0; i < currentMobsPerWave - readyToSpawnMobs; i++)
                 {
                     CreateMob();
                 }
@@ -292,7 +315,7 @@ namespace Map
 
         public void AddLevelToLayout()
         {
-            var obj = Instantiate(levelTemplate, mapRootPoint.position + (levelsNum) * offset, Quaternion.identity);
+            var obj = Instantiate(levelTemplate, mapRootPoint.position + levelsNum * offset, Quaternion.identity);
             var levelController = obj.GetComponent<LevelController>();
             RegisterLevel(levelController);
             levelsNum += 1;
@@ -390,12 +413,14 @@ namespace Map
                 var mob = _idToEntities[entityId];
                 var roomType = roomsControllers[roomId].RoomSettings.RoomType;
 
-                _roomDamageStrategies[roomType].BeforeDamageCalculationAction(_idToEntities[entityId].stats);
+                _roomDamageStrategies[roomType].AddRunesToStorageForEntity(runeStorage, entityId);
 
-                damagePerEntity[entityId] = _roomDamageStrategies[roomType].CalculateDamageForMob(_idToEntities[entityId].stats);
+                damagePerEntity[entityId] = _roomDamageStrategies[roomType].ComputeDamageForEntityWithRuneStorage(runeStorage, entityId);
+
                 ApplyDamageToMob(entityId);
 
-                _roomDamageStrategies[roomType].AfterDamageCalculationAction(_idToEntities[entityId].stats);
+                _roomDamageStrategies[roomType].RemoveRunesFromStorageForEntity(runeStorage, entityId);
+
                 mob.AdjustSpeed();
 
                 AddToDisarmRoom(roomId);

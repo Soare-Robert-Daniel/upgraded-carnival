@@ -54,7 +54,7 @@ namespace UI
             nextWaveLabel.text = "Next wave: 0";
             mapManager.OnNextWaveTimeChanged += time =>
             {
-                nextWaveLabel.text = $"Next wave: {Mathf.RoundToInt(time)}";
+                nextWaveLabel.text = $"Next wave: {Mathf.RoundToInt(time)}s";
             };
 
             var currentWaveNumberLabel = hud.rootVisualElement.Q<Label>("WaveNumberLabel");
@@ -81,6 +81,9 @@ namespace UI
 
             var settingsBtn = hud.rootVisualElement.Q<Button>("SettingsBtn");
             settingsBtn.clicked += () => OnSettingsBtnClicked?.Invoke();
+
+            var startWaveBtn = hud.rootVisualElement.Q<Button>("StartWaveBtn");
+            startWaveBtn.clicked += () => StartCoroutine(mapManager.ManualStartWave());
         }
 
         public void UpdateOpenRoomLabel(string text)

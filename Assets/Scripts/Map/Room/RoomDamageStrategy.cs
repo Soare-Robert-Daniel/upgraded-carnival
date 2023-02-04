@@ -2,49 +2,55 @@
 using System.Collections.Generic;
 using System.Linq;
 using GameEntities;
-using UnityEngine;
 
 namespace Map.Room
 {
+
     public class RoomDamageStrategy
     {
         public Dictionary<RuneType, float> DamagePerRune;
-        public List<Rune> RuneToAdd;
-        public List<RuneType> RuneTypeToRemove;
+        public float[] RuneDurationToAdd;
+
+        public RuneType[] RuneTypeToAdd;
+        public RuneType[] RuneTypeToRemove;
+
         public RoomDamageStrategy()
         {
-            RuneToAdd = new List<Rune>();
-            RuneTypeToRemove = new List<RuneType>();
+            RuneTypeToAdd = Array.Empty<RuneType>();
+            RuneDurationToAdd = Array.Empty<float>();
+            RuneTypeToRemove = Array.Empty<RuneType>();
             DamagePerRune = new Dictionary<RuneType, float>();
         }
 
         public float BaseDamage { get; private set; } = 0;
 
-        public virtual float CalculateDamageForMob(EntityStats entityStats)
+        public virtual float ComputeDamageForEntityWithRuneStorage(RuneStorage runeStorage, int entityId)
         {
             var damage = BaseDamage;
 
-            foreach (var entityStatsRune in entityStats.Runes)
+            foreach (var rune in runeStorage.GetAllRunesCountForEntity(entityId))
             {
-                if (DamagePerRune.TryGetValue(entityStatsRune.Type, out var value))
+                if (DamagePerRune.TryGetValue(rune.Key, out var value))
                 {
-                    damage += value;
+                    damage += value * rune.Value;
                 }
             }
 
             return damage;
         }
 
-        public virtual void BeforeDamageCalculationAction(EntityStats entityStats)
+        public virtual void AddRunesToStorageForEntity(RuneStorage runeStorage, int entityId)
         {
-            entityStats.AddRunes(RuneToAdd.Select(x => x.Clone()).ToList());
+            for (var i = 0; i < RuneTypeToAdd.Length; i++)
+            {
+                runeStorage.AddRune(entityId, RuneTypeToAdd[i], RuneDurationToAdd[i]);
+            }
         }
 
-        public virtual void AfterDamageCalculationAction(EntityStats entityStats)
+        public virtual void RemoveRunesFromStorageForEntity(RuneStorage runeStorage, int entityId)
         {
-            entityStats.RemoveRunesType(RuneTypeToRemove);
+            runeStorage.RemoveRunesForEntity(RuneTypeToRemove.ToArray(), entityId);
         }
-
 
         public virtual void SetBaseDamage(float flatDamage)
         {
@@ -59,25 +65,19 @@ namespace Map.Room
         public virtual void LoadFromModel(RoomModel roomModel)
         {
             BaseDamage = roomModel.baseDamage;
-            foreach (var roomModelDamagePerRune in roomModel.runeAction)
+            foreach (var roomModelDamagePerRune in roomModel.runesAction)
             {
                 SetDamagePerRune(roomModelDamagePerRune.type, roomModelDamagePerRune.damage);
-                switch (roomModelDamagePerRune.actionType)
-                {
-                    case RoomRuneHandlingType.Add:
-                        RuneToAdd.Add(new Rune().SetRuneType(roomModelDamagePerRune.type).SetDuration(roomModelDamagePerRune.duration));
-                        break;
-                    case RoomRuneHandlingType.Remove:
-                        RuneTypeToRemove.Add(roomModelDamagePerRune.type);
-                        break;
-                    case RoomRuneHandlingType.Keep:
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
             }
 
-            Debug.Log(RuneToAdd.Count);
+            RuneTypeToAdd = roomModel.runesAction.Where(rune => rune.actionType == RoomRuneHandlingType.Add)
+                .Select(rune => rune.type).ToArray();
+
+            RuneDurationToAdd = roomModel.runesAction.Where(rune => rune.actionType == RoomRuneHandlingType.Add).Select(rune => rune.duration)
+                .ToArray();
+
+            RuneTypeToRemove = roomModel.runesAction.Where(rune => rune.actionType == RoomRuneHandlingType.Remove)
+                .Select(rune => rune.type).ToArray();
         }
     }
 }
