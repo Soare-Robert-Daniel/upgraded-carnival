@@ -50,7 +50,7 @@ public class InputController : MonoBehaviour
         if (hit.collider.CompareTag("RoomOverlay"))
         {
             var id = hit.collider.transform.parent.gameObject.GetComponent<RoomController>().ID;
-            Debug.Log($"Found a room {id}");
+            // Debug.Log($"Found a room {id}");
             manager.ChangeSelectedRoomWithEvent(id);
         }
     }

@@ -33,13 +33,13 @@ namespace UI
 
             openRoomMenuBtn.RegisterCallback<MouseOverEvent>((_) =>
             {
-                Debug.Log("Over the menu button");
+                // Debug.Log("Over the menu button");
                 mapManager.uiState.StopSelectionOverHud();
             });
 
             openRoomMenuBtn.RegisterCallback<MouseOutEvent>((_) =>
             {
-                Debug.Log("Exit the menu button");
+                // Debug.Log("Exit the menu button");
                 mapManager.uiState.StartSelectionOutHUD();
             });
 

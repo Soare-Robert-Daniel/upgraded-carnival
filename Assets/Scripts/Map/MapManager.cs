@@ -251,7 +251,7 @@ namespace Map
 
             if (currentMobsPerWave > readyToSpawnMobs)
             {
-                Debug.Log($"Create {currentMobsPerWave - readyToSpawnMobs} mobs");
+                // Debug.Log($"Create {currentMobsPerWave - readyToSpawnMobs} mobs");
                 for (var i = 0; i < currentMobsPerWave - readyToSpawnMobs; i++)
                 {
                     CreateMob();
