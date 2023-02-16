@@ -44,7 +44,7 @@ namespace Map
         [SerializeField] private List<int> entitiesInRooms;
         [SerializeField] private List<EntityRoomStatus> entityRoomStatus;
         [SerializeField] private List<float> damagePerEntity;
-        [SerializeField] private List<bool> roomsCanFire;
+        [SerializeField] private RoomsSystem roomsSystem;
 
         [Header("Resources")]
         [SerializeField] private int startingLevelsNum;
@@ -80,7 +80,6 @@ namespace Map
         private Dictionary<RoomType, RoomDamageStrategy> _roomDamageStrategies;
         private int _roomGenID;
         private Dictionary<RoomType, float> _roomsDamagePerType;
-        private Stack<int> _roomsToDisarm;
 
         private Dictionary<RoomType, RoomModel> _roomTypeToModels;
 
@@ -98,13 +97,13 @@ namespace Map
 
             entitiesInRooms = new List<int>();
             damagePerEntity = new List<float>();
-            roomsCanFire = new List<bool>();
+
             entityRoomStatus = new List<EntityRoomStatus>();
 
             _entitiesToId = new Dictionary<Mob, int>();
             _idToEntities = new Dictionary<int, Mob>();
             _roomsDamagePerType = new Dictionary<RoomType, float>();
-            _roomsToDisarm = new Stack<int>();
+
             spawnStartPerMob = new List<float>();
             _roomDamageStrategies = new Dictionary<RoomType, RoomDamageStrategy>();
 
@@ -112,6 +111,7 @@ namespace Map
             wavePrepared = false;
 
             runeStorage = new RuneStorage(200);
+            roomsSystem = new RoomsSystem(50);
 
             _roomTypeToModels = new Dictionary<RoomType, RoomModel>();
             foreach (var roomModel in roomModels.list)
@@ -145,6 +145,7 @@ namespace Map
 
         private void LateUpdate()
         {
+
             for (var entityId = 0; entityId < entityRoomStatus.Count; entityId++)
             {
                 if (entityRoomStatus[entityId] == EntityRoomStatus.Entered)
@@ -167,10 +168,11 @@ namespace Map
                 }
             }
 
+            roomsSystem.UpdateRoomsAttackTime(Time.deltaTime);
             runeStorage.UpdateRunesDurations(Time.deltaTime);
             HandleRuneAndDamagePerEntity();
             RetireMobs();
-            DisarmRooms();
+            roomsSystem.DisarmRooms();
 
             if (!wavePrepared && waveTimeInterval - currentWaveTimer < 5f)
             {
@@ -340,17 +342,12 @@ namespace Map
         private void RegisterRoom(RoomController room)
         {
             room.ID = GenRoomID();
-            room.CanFire = true;
             room.MapManager = this;
 
-            roomsCanFire.Add(false);
+            roomsSystem.AddRoom(RoomType.Empty, 0);
+
             roomsControllers.Add(room);
             room.UpdateRoomName();
-        }
-
-        public void MarkRoomToFire(int roomId)
-        {
-            roomsCanFire[roomId] = true;
         }
 
         private int GenRoomID()
@@ -369,6 +366,9 @@ namespace Map
         {
             roomsControllers[selectedRoomId].RoomSettings.LoadFromModel(_roomTypeToModels[roomType]);
             roomsControllers[selectedRoomId].UpdateVisual(_roomTypeToModels[roomType]);
+
+            roomsSystem.SetRoomType(selectedRoomId, roomType);
+            roomsSystem.SetRoomAttackTimeInterval(selectedRoomId, _roomTypeToModels[roomType].fireRate);
         }
 
         public void TryBuyRoomForSelectedRoom(RoomType roomType)
@@ -408,10 +408,10 @@ namespace Map
             for (var entityId = 0; entityId < entitiesInRooms.Count; entityId++)
             {
                 var roomId = entitiesInRooms[entityId];
-                if (!roomsCanFire[roomId]) continue;
+                if (!roomsSystem.CanRoomFire(entityId)) continue;
 
                 var mob = _idToEntities[entityId];
-                var roomType = roomsControllers[roomId].RoomSettings.RoomType;
+                var roomType = roomsSystem.GetRoomType(roomId);
 
                 _roomDamageStrategies[roomType].AddRunesToStorageForEntity(runeStorage, entityId);
 
@@ -423,15 +423,9 @@ namespace Map
 
                 mob.AdjustSpeed();
 
-                AddToDisarmRoom(roomId);
+                roomsSystem.AddRoomToDisarm(roomId);
                 ShouldRetire(entityId);
             }
-        }
-
-        private void ResetRoomFireStatus(int roomId)
-        {
-            roomsCanFire[roomId] = false;
-            roomsControllers[roomId].ResetFire();
         }
 
         private void ShouldRetire(int entityId)
@@ -511,19 +505,6 @@ namespace Map
 
             roomsControllers[roomId].Select();
             OnSelectedRoomChange?.Invoke(roomId);
-        }
-
-        private void AddToDisarmRoom(int roomId)
-        {
-            _roomsToDisarm.Push(roomId);
-        }
-
-        private void DisarmRooms()
-        {
-            while (_roomsToDisarm.Count > 0)
-            {
-                ResetRoomFireStatus(_roomsToDisarm.Pop());
-            }
         }
 
         public List<RoomModel> RoomModels => roomModels.list;

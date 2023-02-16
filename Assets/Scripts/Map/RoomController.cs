@@ -9,11 +9,6 @@ namespace Map
 {
     public class RoomController : MonoBehaviour
     {
-        [Header("Attributes")]
-        [SerializeField] private bool canFire;
-
-        [SerializeField] private float currentFireInterval;
-        [SerializeField] private float currentFireDuration;
 
         [FormerlySerializedAs("roomState")] [SerializeField]
         private RoomSettings roomSettings;
@@ -49,12 +44,6 @@ namespace Map
             set => mapManager = value;
         }
 
-        public bool CanFire
-        {
-            get => canFire;
-            set => canFire = value;
-        }
-
         public RoomSettings RoomSettings => roomSettings;
 
         private void Start()
@@ -67,20 +56,20 @@ namespace Map
         {
             // Remove in the future
             UpdateSymbols();
+        }
 
-            if (!canFire)
+        #region Map Manager Interactions
+
+        private void OnTriggerEnter(Collider other)
+        {
+            var mob = other.gameObject.GetComponent<Mob>();
+            if (mob != null)
             {
-                return;
-            }
-
-            currentFireInterval += Time.deltaTime;
-
-            if (currentFireInterval > roomSettings.FireRate + roomSettings.FireDuration)
-            {
-                mapManager.MarkRoomToFire(id);
-                ResetFire();
+                mapManager.SetMobRoomStatus(mob.id, EntityRoomStatus.Exit);
             }
         }
+
+        #endregion
 
         public void UpdateState(RoomSettings newSettings)
         {
@@ -147,24 +136,6 @@ namespace Map
         #endregion
 
         #region Events
-
-        #endregion
-
-        #region Map Manager Interactions
-
-        private void OnTriggerEnter(Collider other)
-        {
-            var mob = other.gameObject.GetComponent<Mob>();
-            if (mob != null)
-            {
-                mapManager.SetMobRoomStatus(mob.id, EntityRoomStatus.Exit);
-            }
-        }
-
-        public void ResetFire()
-        {
-            currentFireInterval = 0f;
-        }
 
         #endregion
 
