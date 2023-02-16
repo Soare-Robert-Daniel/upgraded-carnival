@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Map.Room;
 using UnityEngine;
 
@@ -13,8 +12,7 @@ namespace Map
         [SerializeField] private float[] roomsCurrentAttackTime;
         [SerializeField] private float[] roomsAttackTimeInterval;
         [SerializeField] private RoomType[] roomsType;
-
-        private Stack<int> roomsToDisarm;
+        private bool[] roomsToDisarm;
 
         public RoomsSystem(int initialCapacity = 0)
         {
@@ -22,6 +20,7 @@ namespace Map
             roomsCurrentAttackTime = new float[initialCapacity];
             roomsAttackTimeInterval = new float[initialCapacity];
             roomsType = new RoomType[initialCapacity];
+            roomsToDisarm = new bool[initialCapacity];
             currentCapacity = 0;
         }
 
@@ -37,7 +36,7 @@ namespace Map
                 currentCapacity++;
             }
 
-            roomsCanFire[newSlot] = false;
+            roomsCanFire[newSlot] = true;
             roomsCurrentAttackTime[newSlot] = 0;
             roomsAttackTimeInterval[newSlot] = attackTimeInterval;
             roomsType[newSlot] = roomType;
@@ -90,17 +89,16 @@ namespace Map
 
         public void AddRoomToDisarm(int roomIndex)
         {
-            roomsToDisarm ??= new Stack<int>();
-            roomsToDisarm.Push(roomIndex);
+            roomsToDisarm[roomIndex] = true;
         }
 
         public void DisarmRooms()
         {
-            if (roomsToDisarm == null) return;
-            while (roomsToDisarm.Count > 0)
+            for (var i = 0; i < currentCapacity; i++)
             {
-                var roomIndex = roomsToDisarm.Pop();
-                roomsCanFire[roomIndex] = false;
+                if (!roomsToDisarm[i]) continue;
+                roomsCanFire[i] = false;
+                roomsToDisarm[i] = false;
             }
         }
 
@@ -110,6 +108,7 @@ namespace Map
             Array.Resize(ref roomsCurrentAttackTime, newCapacity);
             Array.Resize(ref roomsAttackTimeInterval, newCapacity);
             Array.Resize(ref roomsType, newCapacity);
+            Array.Resize(ref roomsToDisarm, newCapacity);
         }
     }
 }

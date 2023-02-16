@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using Economy;
 using GameEntities;
 using Map.Components;
@@ -14,11 +13,11 @@ namespace Map
 
     public enum EntityRoomStatus
     {
+        ReadyToSpawn, // Waiting to re-enter on the next wave.
         Entered, // Just entered in the room.
         Moving, // Moving through the room.
-        Exit, // Need to exit and enter the next room.
-        Retired, // Should retired from the scene to the spawn point.
-        ReadyToSpawn // Waiting to re-enter on the next wave.
+        Exiting, // Need to exit and enter the next room.
+        Retiring // Should retired from the scene to the spawn point. The mob is dead.
     }
 
     public class MapManager : MonoBehaviour
@@ -41,7 +40,7 @@ namespace Map
         [Header("Rooms")]
         [SerializeField] private List<RoomController> roomsControllers;
 
-        [SerializeField] private List<int> entitiesInRooms;
+        [SerializeField] private List<int> mobLocationOnMap;
         [SerializeField] private List<EntityRoomStatus> entityRoomStatus;
         [SerializeField] private List<float> damagePerEntity;
         [SerializeField] private RoomsSystem roomsSystem;
@@ -68,63 +67,61 @@ namespace Map
         [SerializeField] private bool wavePrepared;
         [SerializeField] private List<float> spawnStartPerMob;
         [SerializeField] private RuneStorage runeStorage;
+        [SerializeField] private MobsSystem mobsSystem;
 
         public UIState uiState;
 
         [SerializeField] private int selectedRoomId;
 
-        private Dictionary<Mob, int> _entitiesToId;
-        private Dictionary<int, Mob> _idToEntities;
+        private Dictionary<Mob, int> mobControllerToId;
 
-        private int _mobGenID;
-        private Dictionary<RoomType, RoomDamageStrategy> _roomDamageStrategies;
-        private int _roomGenID;
-        private Dictionary<RoomType, float> _roomsDamagePerType;
+        private int mobGenID;
+        private Dictionary<int, Mob> mobIdToController;
+        private int roomGenID;
+        private Dictionary<RoomType, RoomRuneHandler> roomRuneHandlers;
 
-        private Dictionary<RoomType, RoomModel> _roomTypeToModels;
-
+        private Dictionary<RoomType, RoomModel> roomTypeToModels;
 
         public EconomyController EconomyController => economyController;
 
         private void Awake()
         {
-            _mobGenID = 0;
-            _roomGenID = 0;
+            mobGenID = 0;
+            roomGenID = 0;
             levelsNum = 0;
 
             levelsControllers = new List<LevelController>();
             roomsControllers = new List<RoomController>();
 
-            entitiesInRooms = new List<int>();
+            mobLocationOnMap = new List<int>();
             damagePerEntity = new List<float>();
 
             entityRoomStatus = new List<EntityRoomStatus>();
 
-            _entitiesToId = new Dictionary<Mob, int>();
-            _idToEntities = new Dictionary<int, Mob>();
-            _roomsDamagePerType = new Dictionary<RoomType, float>();
+            mobControllerToId = new Dictionary<Mob, int>();
+            mobIdToController = new Dictionary<int, Mob>();
 
             spawnStartPerMob = new List<float>();
-            _roomDamageStrategies = new Dictionary<RoomType, RoomDamageStrategy>();
+            roomRuneHandlers = new Dictionary<RoomType, RoomRuneHandler>();
 
             currentWaveTimer = 0;
             wavePrepared = false;
 
-            runeStorage = new RuneStorage(200);
-            roomsSystem = new RoomsSystem(50);
+            runeStorage = new RuneStorage(10);
+            roomsSystem = new RoomsSystem(10);
+            mobsSystem = new MobsSystem(10);
 
-            _roomTypeToModels = new Dictionary<RoomType, RoomModel>();
+            roomTypeToModels = new Dictionary<RoomType, RoomModel>();
             foreach (var roomModel in roomModels.list)
             {
-                _roomTypeToModels.Add(roomModel.roomType, roomModel);
+                roomTypeToModels.Add(roomModel.roomType, roomModel);
 
-                var strategy = new RoomDamageStrategy();
+                var strategy = new RoomRuneHandler();
                 strategy.LoadFromModel(roomModel);
-                _roomDamageStrategies.Add(roomModel.roomType, strategy);
+                roomRuneHandlers.Add(roomModel.roomType, strategy);
             }
 
             CreateLayout(startingLevelsNum);
-            UpdateRoomDamageFromModels();
         }
 
         private void Start()
@@ -134,7 +131,7 @@ namespace Map
 
         public void Update()
         {
-            UpdateMobsRunes();
+            // UpdateMobsRunes();
 
             if (enableWave)
             {
@@ -146,32 +143,44 @@ namespace Map
         private void LateUpdate()
         {
 
-            for (var entityId = 0; entityId < entityRoomStatus.Count; entityId++)
+            for (var mobId = 0; mobId < mobsSystem.GetMobCount(); mobId++)
             {
-                if (entityRoomStatus[entityId] == EntityRoomStatus.Entered)
+                switch (mobsSystem.GetMobRoomStatus(mobId))
                 {
-                    _idToEntities[entityId].StartMovingInRoom(roomsControllers[entitiesInRooms[entityId]]);
-                    SetMobRoomStatus(entityId, EntityRoomStatus.Moving);
-                }
 
-                if (entityRoomStatus[entityId] == EntityRoomStatus.Exit)
-                {
-                    if (HasMobPassedTheFinalRoom(entityId))
-                    {
-                        SetMobRoomStatus(entityId, EntityRoomStatus.Retired);
-                        OnMobReachedFinalRoom?.Invoke(_idToEntities[entityId]);
-                    }
-                    else
-                    {
-                        MoveMobToNextRoom(entityId);
-                    }
+                    case EntityRoomStatus.Entered:
+                        mobIdToController[mobId].StartMovingInRoom(roomsControllers[mobsSystem.GetMobLocationRoomIndex(mobId)]);
+                        mobsSystem.SetMobRoomStatus(mobId, EntityRoomStatus.Moving);
+                        break;
+                    case EntityRoomStatus.Moving:
+                        break;
+                    case EntityRoomStatus.Exiting:
+                        if (HasMobPassedTheFinalRoom(mobId))
+                        {
+                            mobsSystem.SetMobRoomStatus(mobId, EntityRoomStatus.Retiring);
+                            OnMobReachedFinalRoom?.Invoke(mobIdToController[mobId]);
+                        }
+                        else
+                        {
+                            MoveMobToNextRoom(mobId);
+                        }
+                        break;
+                    case EntityRoomStatus.Retiring:
+                        break;
+                    case EntityRoomStatus.ReadyToSpawn:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
                 }
             }
 
             roomsSystem.UpdateRoomsAttackTime(Time.deltaTime);
             runeStorage.UpdateRunesDurations(Time.deltaTime);
-            HandleRuneAndDamagePerEntity();
-            RetireMobs();
+            HandleRuneAndDamagePerMob();
+
+            CollectBountyFromMobs();
+
+            mobsSystem.MoveRetiringMobsToDeploy();
             roomsSystem.DisarmRooms();
 
             if (!wavePrepared && waveTimeInterval - currentWaveTimer < 5f)
@@ -184,7 +193,7 @@ namespace Map
                 StartWave();
             }
 
-            CheckAndStartMobs();
+            DeployMobs();
         }
 
         #region Wave Gameplay
@@ -208,18 +217,11 @@ namespace Map
         {
             wavePrepared = false;
             var startTime = 0f;
-            for (var entityId = 0; entityId < entityRoomStatus.Count; entityId++)
-            {
-                if (entityRoomStatus[entityId] == EntityRoomStatus.Retired)
-                {
-                    SetMobRoomStatus(entityId, EntityRoomStatus.ReadyToSpawn);
-                }
 
-                if (entityRoomStatus[entityId] == EntityRoomStatus.ReadyToSpawn)
-                {
-                    spawnStartPerMob[entityId] = startTime;
-                    startTime += waveMobSpawnStartOffset;
-                }
+            foreach (var mobToSpawn in mobsSystem.GetMobsToDeployArray())
+            {
+                spawnStartPerMob[mobToSpawn] = startTime;
+                startTime += waveMobSpawnStartOffset;
             }
         }
 
@@ -248,26 +250,22 @@ namespace Map
             // Create more if we don't have enough _available_ mobs.
             // TODO: Add new _available_ mobs 
 
-            // Count the mobs with status ReadyToSpawn or Retied.
-            var readyToSpawnMobs = entityRoomStatus.Count(t => t is EntityRoomStatus.ReadyToSpawn or EntityRoomStatus.Retired);
+            var readyToSpawnMobs = mobsSystem.ReadyToDeployMobCount();
 
-            if (currentMobsPerWave > readyToSpawnMobs)
+            if (currentMobsPerWave <= readyToSpawnMobs) return;
+            // Debug.Log($"Create {currentMobsPerWave - readyToSpawnMobs} mobs");
+            for (var i = 0; i < currentMobsPerWave - readyToSpawnMobs; i++)
             {
-                // Debug.Log($"Create {currentMobsPerWave - readyToSpawnMobs} mobs");
-                for (var i = 0; i < currentMobsPerWave - readyToSpawnMobs; i++)
-                {
-                    CreateMob();
-                }
+                CreateMob();
             }
         }
 
-        private void CheckAndStartMobs()
+        private void DeployMobs()
         {
-            for (var entityId = 0; entityId < entityRoomStatus.Count; entityId++)
+            foreach (var mobId in mobsSystem.PullMobsToDeploy())
             {
-                if (entityRoomStatus[entityId] != EntityRoomStatus.ReadyToSpawn || !(spawnStartPerMob[entityId] < currentWaveTimer)) continue;
-                MoveMobToRoom(entityId, 0);
-                SetMobRoomStatus(entityId, EntityRoomStatus.Entered);
+                mobsSystem.SetMobRoomIndex(mobId, 0);
+                mobsSystem.SetMobRoomStatus(mobId, EntityRoomStatus.Entered);
             }
         }
 
@@ -276,6 +274,7 @@ namespace Map
             // By letting the room to register himself in Start, it will be available for next round.
             var mobObj = Instantiate(mobTemplate, mobStartingPoint.transform);
             var mobController = mobObj.GetComponent<Mob>();
+
             if (mobController == null)
             {
                 Debug.LogError("The Mob template DOES NOT HAVE THE CONTROLLER");
@@ -352,8 +351,8 @@ namespace Map
 
         private int GenRoomID()
         {
-            var id = _roomGenID;
-            _roomGenID += 1;
+            var id = roomGenID;
+            roomGenID += 1;
             return id;
         }
 
@@ -364,19 +363,19 @@ namespace Map
 
         private void ChangeRoomTypeForSelectedRoom(RoomType roomType)
         {
-            roomsControllers[selectedRoomId].RoomSettings.LoadFromModel(_roomTypeToModels[roomType]);
-            roomsControllers[selectedRoomId].UpdateVisual(_roomTypeToModels[roomType]);
+            roomsControllers[selectedRoomId].RoomSettings.LoadFromModel(roomTypeToModels[roomType]);
+            roomsControllers[selectedRoomId].UpdateVisual(roomTypeToModels[roomType]);
 
             roomsSystem.SetRoomType(selectedRoomId, roomType);
-            roomsSystem.SetRoomAttackTimeInterval(selectedRoomId, _roomTypeToModels[roomType].fireRate);
+            roomsSystem.SetRoomAttackTimeInterval(selectedRoomId, roomTypeToModels[roomType].fireRate);
         }
 
         public void TryBuyRoomForSelectedRoom(RoomType roomType)
         {
             if (!IsSelectedRoomValid()) return;
-            if (!economyController.CanSpend(Currency.Gold, _roomTypeToModels[roomType].price)) return;
+            if (!economyController.CanSpend(Currency.Gold, roomTypeToModels[roomType].price)) return;
 
-            economyController.SpendCurrency(Currency.Gold, _roomTypeToModels[roomType].price);
+            economyController.SpendCurrency(Currency.Gold, roomTypeToModels[roomType].price);
             ChangeRoomTypeForSelectedRoom(roomType);
         }
 
@@ -402,86 +401,71 @@ namespace Map
 
         #region Room Gameplay
 
-        private void HandleRuneAndDamagePerEntity()
+        private void HandleRuneAndDamagePerMob()
         {
             // I wonder if we can put this on a Job.
-            for (var entityId = 0; entityId < entitiesInRooms.Count; entityId++)
+            for (var mobId = 0; mobId < mobsSystem.GetMobCount(); mobId++)
             {
-                var roomId = entitiesInRooms[entityId];
-                if (!roomsSystem.CanRoomFire(entityId)) continue;
+                var roomId = mobsSystem.GetMobLocationRoomIndex(mobId);
+                if (!roomsSystem.CanRoomFire(roomId)) continue;
 
-                var mob = _idToEntities[entityId];
+                var mob = mobIdToController[mobId];
                 var roomType = roomsSystem.GetRoomType(roomId);
 
-                _roomDamageStrategies[roomType].AddRunesToStorageForEntity(runeStorage, entityId);
+                // Rune Storage.
+                roomRuneHandlers[roomType].AddRunesToStorageForEntity(runeStorage, mobId);
+                roomRuneHandlers[roomType].ComputeDamageAndSlowForMobWithRuneStorage(runeStorage, mobId, out var damage, out var slow);
+                roomRuneHandlers[roomType].RemoveRunesFromStorageForEntity(runeStorage, mobId);
 
-                damagePerEntity[entityId] = _roomDamageStrategies[roomType].ComputeDamageForEntityWithRuneStorage(runeStorage, entityId);
-
-                ApplyDamageToMob(entityId);
-
-                _roomDamageStrategies[roomType].RemoveRunesFromStorageForEntity(runeStorage, entityId);
-
-                mob.AdjustSpeed();
-
+                mobsSystem.UpdateMobDamageReceived(mobId, damage);
                 roomsSystem.AddRoomToDisarm(roomId);
-                ShouldRetire(entityId);
+
+                // Debug.Log($"Mob {mobId} received {damage} damage and {slow} slow.");
+
+                // Update Mob Controller.
+                mob.AdjustSpeed(mobsSystem.GetMobSpeed(mobId) * (1f - slow));
+
+                if (damage > 0f)
+                {
+                    mob.UpdateHealthBar(mobsSystem.GetMobHealth(mobId) / 100f);
+                }
             }
+
+            mobsSystem.ApplyDamageReceivedToMobs();
         }
 
-        private void ShouldRetire(int entityId)
-        {
-            if (!_idToEntities[entityId].stats.IsAlive())
-            {
-                SetMobRoomStatus(entityId, EntityRoomStatus.Retired);
-            }
-        }
-
-        private void RetireMobs()
+        private void CollectBountyFromMobs()
         {
             for (var entityId = 0; entityId < entityRoomStatus.Count; entityId++)
             {
-                if (entityRoomStatus[entityId] == EntityRoomStatus.Retired)
+                if (entityRoomStatus[entityId] == EntityRoomStatus.Retiring)
                 {
-                    RetireMob(entityId);
                     CollectBountyFromMob(entityId);
-                    SetMobRoomStatus(entityId, EntityRoomStatus.ReadyToSpawn);
                 }
             }
         }
 
-
-        private void MoveMobToRoom(int entityId, int roomId)
+        private int GetNextRoomForMob(int modId)
         {
-            entitiesInRooms[entityId] = roomId;
+            return Mathf.Min(mobsSystem.GetMobLocationRoomIndex(modId) + 1, roomsControllers.Count - 1);
         }
 
-        private int GetNextRoomForMob(int entityId)
+        public void MoveMobToNextRoom(int mobId)
         {
-            return Mathf.Min(entitiesInRooms[entityId] + 1, roomsControllers.Count - 1);
+            var roomId = GetNextRoomForMob(mobId);
+
+            mobsSystem.SetMobRoomIndex(mobId, roomId);
+            mobsSystem.SetMobRoomStatus(mobId, EntityRoomStatus.Entered);
         }
 
-        public void MoveMobToNextRoom(int entityId)
+        public void SetMobRoomStatus(int mobId, EntityRoomStatus status)
         {
-            MoveMobToRoom(entityId, GetNextRoomForMob(entityId));
-            SetMobRoomStatus(entityId, EntityRoomStatus.Entered);
+            mobsSystem.SetMobRoomStatus(mobId, status);
         }
 
-        public void SetMobRoomStatus(int entityId, EntityRoomStatus status)
+        private bool HasMobPassedTheFinalRoom(int mobId)
         {
-            entityRoomStatus[entityId] = status;
-        }
-
-        private bool HasMobPassedTheFinalRoom(int entityId)
-        {
-            return entitiesInRooms[entityId] == roomsControllers.Count - 1;
-        }
-
-        private void UpdateRoomDamageFromModels()
-        {
-            foreach (var roomModel in RoomModels)
-            {
-                _roomsDamagePerType.Add(roomModel.roomType, 1f);
-            }
+            return mobsSystem.GetMobLocationRoomIndex(mobId) == roomsControllers.Count - 1;
         }
 
         public int SelectedRoomId
@@ -515,8 +499,8 @@ namespace Map
 
         private int GenMobID()
         {
-            var id = _mobGenID;
-            _mobGenID += 1;
+            var id = mobGenID;
+            mobGenID += 1;
             return id;
         }
 
@@ -524,43 +508,21 @@ namespace Map
         {
             mob.id = GenMobID();
 
-            entitiesInRooms.Add(0);
-            entityRoomStatus.Add(EntityRoomStatus.ReadyToSpawn
-            );
-            _entitiesToId.Add(mob, mob.id);
-            _idToEntities.Add(mob.id, mob);
+            mobControllerToId.Add(mob, mob.id);
+            mobIdToController.Add(mob.id, mob);
             spawnStartPerMob.Add(3000f);
-            damagePerEntity.Add(0);
-        }
 
-        private void ApplyDamageToMob(int entityId)
-        {
-            _idToEntities[entityId].ApplyDamage(damagePerEntity[entityId]);
+            mobsSystem.AddMob(0, new SimpleMobClass(), 100, 1f);
         }
 
         private void MoveMobToStartingPoint(int entityId)
         {
-            _idToEntities[entityId].RelocateToPosition(mobStartingPoint.transform.position);
-        }
-
-        private void RetireMob(int entityId)
-        {
-            MoveMobToStartingPoint(entityId);
-        }
-
-        private void UpdateMobsRunes()
-        {
-            var time = Time.deltaTime;
-            foreach (var mob in _idToEntities.Values)
-            {
-                mob.stats.DecreaseRunesDuration(time);
-                mob.stats.RemoveExpiredRunes();
-            }
+            mobIdToController[entityId].RelocateToPosition(mobStartingPoint.transform.position);
         }
 
         private void CollectBountyFromMob(int entityId)
         {
-            economyController.AddCurrency(_idToEntities[entityId].bounty.currency, _idToEntities[entityId].bounty.value);
+            economyController.AddCurrency(mobIdToController[entityId].bounty.currency, mobIdToController[entityId].bounty.value);
         }
 
         #endregion

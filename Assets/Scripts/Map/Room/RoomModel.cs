@@ -17,6 +17,7 @@ namespace Map.Room
     {
         public RuneType type;
         public float damage;
+        public float slow;
         public float duration;
         public RoomRuneHandlingType actionType;
     }

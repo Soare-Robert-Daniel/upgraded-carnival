@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using Economy;
+﻿using Economy;
 using Map;
 using UnityEngine;
 
@@ -9,7 +8,7 @@ namespace GameEntities
     {
         public int id;
         public Vector3 target;
-        public EntityStats stats;
+
         public Bounty bounty;
         public Vector3 movementDirection = Vector3.right;
         public float speed = 2f;
@@ -30,23 +29,24 @@ namespace GameEntities
             manager.RegisterMob(this);
         }
 
-        private void Update()
-        {
-            UpdateHealthBar();
-        }
-
         #region Room Movement
 
         public void StartMovingInRoom(RoomController room)
         {
+            // Debug.Log($"StartMovingInRoom: {movementDirection} | {speed}");
             transform.position = room.GetStartingPosition();
             AdjustSpeed();
         }
 
         public void AdjustSpeed()
         {
-            var slow = Mathf.Clamp(stats.Runes.Count(x => x.Type == RuneType.Slow) * 0.1f, 0f, 0.8f);
-            rd2D.velocity = movementDirection * (speed * (1f - slow));
+            rd2D.velocity = movementDirection * speed;
+        }
+
+        public void AdjustSpeed(float newSpeed)
+        {
+            speed = newSpeed;
+            AdjustSpeed();
         }
 
         public void RelocateToPosition(Vector3 position)
@@ -59,24 +59,19 @@ namespace GameEntities
 
         #region Room Effects
 
-        public void ApplyDamage(float damage)
-        {
-            stats.Health = Mathf.Max(0, stats.Health - damage);
-            UpdateHealthBar();
-        }
-
         private void OnTriggerEnter2D(Collider2D other)
         {
             if (other.CompareTag("ExitRoom"))
             {
-                manager.SetMobRoomStatus(id, EntityRoomStatus.Exit);
+                manager.SetMobRoomStatus(id, EntityRoomStatus.Exiting);
             }
         }
 
-        private void UpdateHealthBar()
+        public void UpdateHealthBar(float healthPercentage)
         {
-            healthBarController.SetPercentage(stats.RemainingHealthPercentage());
+            healthBarController.SetPercentage(healthPercentage);
         }
+
 
         public MapManager Manager
         {

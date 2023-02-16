@@ -9,7 +9,7 @@ namespace GameEntities
     public class RuneStorage
     {
 
-        [SerializeField] private int[] entitiesIds;
+        [SerializeField] private int[] mobsIds;
         [SerializeField] private RuneType[] runesTypes;
         [SerializeField] private float[] runesDuration;
         private int EMPTY_SLOT = -1;
@@ -17,27 +17,27 @@ namespace GameEntities
 
         public RuneStorage(int initialCapacity = 0)
         {
-            entitiesIds = new int[initialCapacity];
+            mobsIds = new int[initialCapacity];
             runesTypes = new RuneType[initialCapacity];
             runesDuration = new float[initialCapacity];
             emptySlots = new Stack<int>();
         }
 
-        public void AddRune(int entityId, RuneType runeType, float runeDuration)
+        public void AddRune(int mobId, RuneType runeType, float runeDuration)
         {
             // Reuse the empty slots from expired runes if possible.
             if (emptySlots.Count > 0)
             {
                 var slot = emptySlots.Pop();
-                entitiesIds[slot] = entityId;
+                mobsIds[slot] = mobId;
                 runesTypes[slot] = runeType;
                 runesDuration[slot] = runeDuration;
             }
             else
             {
-                var newSlot = entitiesIds.Length;
+                var newSlot = mobsIds.Length;
                 ResizeStorage(newSlot + 1);
-                entitiesIds[newSlot] = entityId;
+                mobsIds[newSlot] = mobId;
                 runesTypes[newSlot] = runeType;
                 runesDuration[newSlot] = runeDuration;
             }
@@ -56,17 +56,17 @@ namespace GameEntities
                 runesDuration[i] -= deltaTime;
 
                 if (!(runesDuration[i] < 0)) continue;
-                entitiesIds[i] = EMPTY_SLOT;
+                mobsIds[i] = EMPTY_SLOT;
                 emptySlots.Push(i);
             }
         }
 
-        public Dictionary<RuneType, int> GetAllRunesCountForEntity(int entityId)
+        public Dictionary<RuneType, int> GetAllRunesCountForEntity(int mobId)
         {
             var result = new Dictionary<RuneType, int>();
-            for (var i = 0; i < entitiesIds.Length; i++)
+            for (var i = 0; i < mobsIds.Length; i++)
             {
-                if (entitiesIds[i] != entityId) continue;
+                if (mobsIds[i] != mobId) continue;
                 if (!result.ContainsKey(runesTypes[i]))
                 {
                     result[runesTypes[i]] = 0;
@@ -76,29 +76,29 @@ namespace GameEntities
             return result;
         }
 
-        public void RemoveRunesForEntity(RuneType[] runeTypes, int entityId)
+        public void RemoveRunesForEntity(RuneType[] runeTypes, int mobId)
         {
-            for (var i = 0; i < entitiesIds.Length; i++)
+            for (var i = 0; i < mobsIds.Length; i++)
             {
-                if (entitiesIds[i] != entityId) continue;
+                if (mobsIds[i] != mobId) continue;
 
                 if (!Array.Exists(runeTypes, runeType => runeType == runesTypes[i])) continue;
 
-                entitiesIds[i] = EMPTY_SLOT;
+                mobsIds[i] = EMPTY_SLOT;
                 emptySlots.Push(i);
             }
         }
 
         public void ResizeStorage(int newCapacity)
         {
-            Array.Resize(ref entitiesIds, newCapacity);
+            Array.Resize(ref mobsIds, newCapacity);
             Array.Resize(ref runesTypes, newCapacity);
             Array.Resize(ref runesDuration, newCapacity);
         }
 
         public void Clear()
         {
-            entitiesIds = Array.Empty<int>();
+            mobsIds = Array.Empty<int>();
             runesTypes = Array.Empty<RuneType>();
             runesDuration = Array.Empty<float>();
             emptySlots.Clear();

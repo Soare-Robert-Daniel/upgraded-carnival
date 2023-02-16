@@ -509,10 +509,15 @@ MonoBehaviour:
   offset: {x: 0, y: 13, z: 0}
   levelsControllers: []
   roomsControllers: []
-  entitiesInRooms: 
+  mobLocationOnMap: 
   entityRoomStatus: 
   damagePerEntity: []
-  roomsCanFire: 
+  roomsSystem:
+    currentCapacity: 0
+    roomsCanFire: 
+    roomsCurrentAttackTime: []
+    roomsAttackTimeInterval: []
+    roomsType: 
   startingLevelsNum: 3
   mobTemplate: {fileID: 2392953840339401500, guid: bb05c66e46aa014458bfe78ecb182d5e, type: 3}
   levelTemplate: {fileID: 2811519476003989976, guid: 5d183f5f1909c2e489f21ef96f60a7e9, type: 3}
@@ -530,6 +535,14 @@ MonoBehaviour:
     entitiesIds: 
     runesTypes: 
     runesDuration: []
+  mobsSystem:
+    currentCapacity: 0
+    mobsRoomIndex: 
+    mobsRoomStatus: 
+    mobsClasses: []
+    mobsHealth: []
+    mobsSpeed: []
+    attackDamageReceived: []
   uiState:
     isOverHUD: 0
     lockSelection: 0
@@ -1569,7 +1582,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2392953840339401491, guid: bb05c66e46aa014458bfe78ecb182d5e, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -45.62
+      value: -63
       objectReference: {fileID: 0}
     - target: {fileID: 2392953840339401491, guid: bb05c66e46aa014458bfe78ecb182d5e, type: 3}
       propertyPath: m_LocalPosition.y
@@ -1613,7 +1626,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2392953840339401500, guid: bb05c66e46aa014458bfe78ecb182d5e, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

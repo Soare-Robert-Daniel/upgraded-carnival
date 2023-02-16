@@ -65,7 +65,7 @@ namespace Map
             var mob = other.gameObject.GetComponent<Mob>();
             if (mob != null)
             {
-                mapManager.SetMobRoomStatus(mob.id, EntityRoomStatus.Exit);
+                mapManager.SetMobRoomStatus(mob.id, EntityRoomStatus.Exiting);
             }
         }
 
