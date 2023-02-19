@@ -5,6 +5,10 @@ using UnityEngine;
 
 namespace GameEntities
 {
+    /**
+     * This class is responsible for keeping track of the mobs state in the game.
+     * Animation, visual, and audio are not handled here. Check MobsControllerSystem for that.
+     */
     [Serializable]
     public class MobsSystem
     {
@@ -81,6 +85,7 @@ namespace GameEntities
             Array.Resize(ref mobsHealth, newCapacity);
             Array.Resize(ref mobsSpeed, newCapacity);
             Array.Resize(ref attackDamageReceived, newCapacity);
+            Array.Resize(ref mobsRoomStatus, newCapacity);
         }
 
         public void MoveRetiringMobsToDeploy()
@@ -176,6 +181,16 @@ namespace GameEntities
         public int[] GetMobsToDeployArray()
         {
             return mobsToDeploy.ToArray();
+        }
+
+        public float[] GetMobsHealthArray()
+        {
+            return mobsHealth;
+        }
+
+        public float[] GetMobsSpeedArray()
+        {
+            return mobsSpeed;
         }
     }
 }

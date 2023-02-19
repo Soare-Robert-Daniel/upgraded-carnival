@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Economy;
 using GameEntities;
 using Map.Components;
 using Map.Room;
 using UI;
+using Unity.Jobs;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace Map
 {
@@ -40,10 +43,8 @@ namespace Map
         [Header("Rooms")]
         [SerializeField] private List<RoomController> roomsControllers;
 
-        [SerializeField] private List<int> mobLocationOnMap;
         [SerializeField] private List<EntityRoomStatus> entityRoomStatus;
-        [SerializeField] private List<float> damagePerEntity;
-        [SerializeField] private RoomsSystem roomsSystem;
+
 
         [Header("Resources")]
         [SerializeField] private int startingLevelsNum;
@@ -66,12 +67,18 @@ namespace Map
         [SerializeField] private int currentMobsPerWave;
         [SerializeField] private bool wavePrepared;
         [SerializeField] private List<float> spawnStartPerMob;
+
+        [Header("Systems")]
         [SerializeField] private RuneStorage runeStorage;
+
         [SerializeField] private MobsSystem mobsSystem;
+        [SerializeField] private RoomsSystem roomsSystem;
+        [SerializeField] private MobsControllerSystem mobsControllerSystem;
 
         public UIState uiState;
 
         [SerializeField] private int selectedRoomId;
+        private JobHandle jobHandle;
 
         private Dictionary<Mob, int> mobControllerToId;
 
@@ -81,6 +88,9 @@ namespace Map
         private Dictionary<RoomType, RoomRuneHandler> roomRuneHandlers;
 
         private Dictionary<RoomType, RoomModel> roomTypeToModels;
+
+        private Stopwatch stopwatch;
+
 
         public EconomyController EconomyController => economyController;
 
@@ -93,9 +103,6 @@ namespace Map
             levelsControllers = new List<LevelController>();
             roomsControllers = new List<RoomController>();
 
-            mobLocationOnMap = new List<int>();
-            damagePerEntity = new List<float>();
-
             entityRoomStatus = new List<EntityRoomStatus>();
 
             mobControllerToId = new Dictionary<Mob, int>();
@@ -107,9 +114,10 @@ namespace Map
             currentWaveTimer = 0;
             wavePrepared = false;
 
-            runeStorage = new RuneStorage(10);
-            roomsSystem = new RoomsSystem(10);
-            mobsSystem = new MobsSystem(10);
+            runeStorage = new RuneStorage(1000);
+            roomsSystem = new RoomsSystem(100);
+            mobsSystem = new MobsSystem(100);
+            mobsControllerSystem = new MobsControllerSystem(100);
 
             roomTypeToModels = new Dictionary<RoomType, RoomModel>();
             foreach (var roomModel in roomModels.list)
@@ -122,6 +130,8 @@ namespace Map
             }
 
             CreateLayout(startingLevelsNum);
+
+            stopwatch = new Stopwatch();
         }
 
         private void Start()
@@ -138,10 +148,24 @@ namespace Map
                 currentWaveTimer += Time.deltaTime;
                 OnNextWaveTimeChanged?.Invoke(waveTimeInterval - currentWaveTimer);
             }
+
+            stopwatch.Reset();
+            stopwatch.Start();
+
+            if (mobsControllerSystem.GetMobControllersCount() > 0)
+            {
+                mobsControllerSystem.UpdateMobsNextPosition(
+                    mobsSystem.GetMobsSpeedArray(),
+                    Time.deltaTime
+                );
+
+                mobsControllerSystem.UpdateMobControllersPositions();
+            }
         }
 
         private void LateUpdate()
         {
+
 
             for (var mobId = 0; mobId < mobsSystem.GetMobCount(); mobId++)
             {
@@ -194,6 +218,9 @@ namespace Map
             }
 
             DeployMobs();
+            stopwatch.Stop();
+
+            OnMapLogicTimeChanged?.Invoke(stopwatch.ElapsedMilliseconds);
         }
 
         #region Wave Gameplay
@@ -250,13 +277,29 @@ namespace Map
             // Create more if we don't have enough _available_ mobs.
             // TODO: Add new _available_ mobs 
 
-            var readyToSpawnMobs = mobsSystem.ReadyToDeployMobCount();
-
-            if (currentMobsPerWave <= readyToSpawnMobs) return;
-            // Debug.Log($"Create {currentMobsPerWave - readyToSpawnMobs} mobs");
-            for (var i = 0; i < currentMobsPerWave - readyToSpawnMobs; i++)
+            if (mobsSystem.GetMobCount() == 0)
             {
-                CreateMob();
+                IncreaseMobStoreCapacity(currentMobsPerWave);
+                for (var i = 0; i < currentMobsPerWave; i++)
+                {
+                    CreateMob();
+                }
+            }
+            else
+            {
+                var readyToSpawnMobs = mobsSystem.ReadyToDeployMobCount();
+
+                if (currentMobsPerWave <= readyToSpawnMobs) return;
+                // Debug.Log($"Create {currentMobsPerWave - readyToSpawnMobs} mobs");
+
+                // Debug.Log(mobsControllerSystem.GetMobControllersCount() + currentMobsPerWave - readyToSpawnMobs);
+
+                IncreaseMobStoreCapacity(mobsControllerSystem.GetMobControllersCount() + currentMobsPerWave - readyToSpawnMobs);
+
+                for (var i = 0; i < currentMobsPerWave - readyToSpawnMobs; i++)
+                {
+                    CreateMob();
+                }
             }
         }
 
@@ -282,6 +325,7 @@ namespace Map
             }
 
             mobController.Manager = this;
+            RegisterMob(mobController);
         }
 
         #endregion
@@ -296,6 +340,8 @@ namespace Map
         public event Action<int, float> OnLevelUpdated;
 
         public event Action<Mob> OnMobReachedFinalRoom;
+
+        public event Action<float> OnMapLogicTimeChanged;
 
         #endregion
 
@@ -512,7 +558,9 @@ namespace Map
             mobIdToController.Add(mob.id, mob);
             spawnStartPerMob.Add(3000f);
 
-            mobsSystem.AddMob(0, new SimpleMobClass(), 100, 1f);
+            mobsSystem.AddMob(0, new SimpleMobClass(), 100, 3f);
+            mobsControllerSystem.AddMobController(mob, mobStartingPoint.transform.position);
+            // Debug.Log($"Registering mob {mob.id}. Total mobs: {mobsSystem.GetMobCount()}. Total controllers: {mobsControllerSystem.GetMobControllersCount()}.");
         }
 
         private void MoveMobToStartingPoint(int entityId)
@@ -523,6 +571,12 @@ namespace Map
         private void CollectBountyFromMob(int entityId)
         {
             economyController.AddCurrency(mobIdToController[entityId].bounty.currency, mobIdToController[entityId].bounty.value);
+        }
+
+        private void IncreaseMobStoreCapacity(int capacity = 1000)
+        {
+            mobsSystem.ResizeStorage(capacity);
+            mobsControllerSystem.ResizeStorage(capacity);
         }
 
         #endregion

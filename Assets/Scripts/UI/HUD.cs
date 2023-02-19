@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using Map;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -84,6 +85,12 @@ namespace UI
 
             var startWaveBtn = hud.rootVisualElement.Q<Button>("StartWaveBtn");
             startWaveBtn.clicked += () => StartCoroutine(mapManager.ManualStartWave());
+
+            var mapLogicTimeLabel = hud.rootVisualElement.Q<Label>("mapLogicTimeLabel");
+            mapManager.OnMapLogicTimeChanged += time =>
+            {
+                mapLogicTimeLabel.text = MathF.Round(time).ToString(CultureInfo.InvariantCulture);
+            };
         }
 
         public void UpdateOpenRoomLabel(string text)

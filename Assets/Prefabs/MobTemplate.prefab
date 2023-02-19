@@ -362,7 +362,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2392953840339401491}
   - component: {fileID: 2422085450265103884}
-  - component: {fileID: 1334343464476457880}
   - component: {fileID: 1334343464476457887}
   - component: {fileID: 1334343464476457884}
   m_Layer: 3
@@ -387,7 +386,7 @@ Transform:
   - {fileID: 2392953839754881841}
   - {fileID: 1334343463675603131}
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!95 &2422085450265103884
 Animator:
@@ -397,7 +396,7 @@ Animator:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2392953840339401500}
-  m_Enabled: 1
+  m_Enabled: 0
   m_Avatar: {fileID: 0}
   m_Controller: {fileID: 9100000, guid: d7a4ab2cbc5aabc46a8e5d220aeae099, type: 2}
   m_CullingMode: 0
@@ -409,33 +408,6 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
---- !u!50 &1334343464476457880
-Rigidbody2D:
-  serializedVersion: 4
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2392953840339401500}
-  m_BodyType: 0
-  m_Simulated: 1
-  m_UseFullKinematicContacts: 0
-  m_UseAutoMass: 0
-  m_Mass: 1
-  m_LinearDrag: 0
-  m_AngularDrag: 0
-  m_GravityScale: 0
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 64
-  m_Interpolate: 0
-  m_SleepingMode: 1
-  m_CollisionDetection: 0
-  m_Constraints: 4
 --- !u!58 &1334343464476457887
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -443,7 +415,7 @@ CircleCollider2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2392953840339401500}
-  m_Enabled: 1
+  m_Enabled: 0
   m_Density: 1
   m_Material: {fileID: 0}
   m_IncludeLayers:
@@ -485,18 +457,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 0
   target: {x: 0, y: 0, z: 0}
-  stats:
-    mobClass:
-      classType: 0
-    health: 100
-    maxHealth: 100
-    baseSpeed: 0
-    runes: []
   bounty:
     currency: 0
     value: 1000
   movementDirection: {x: 1, y: 0, z: 0}
   speed: 4
   manager: {fileID: 0}
-  rd2D: {fileID: 1334343464476457880}
+  rd2D: {fileID: 0}
   healthBarController: {fileID: 1334343463675603129}

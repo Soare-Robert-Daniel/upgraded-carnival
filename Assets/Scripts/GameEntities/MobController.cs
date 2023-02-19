@@ -19,40 +19,30 @@ namespace GameEntities
         [SerializeField] private Rigidbody2D rd2D;
         [SerializeField] private HealthBarController healthBarController;
 
-        private void Awake()
-        {
-
-        }
-
-        private void Start()
-        {
-            manager.RegisterMob(this);
-        }
-
         #region Room Movement
 
         public void StartMovingInRoom(RoomController room)
         {
             // Debug.Log($"StartMovingInRoom: {movementDirection} | {speed}");
-            transform.position = room.GetStartingPosition();
-            AdjustSpeed();
+            // transform.position = room.GetStartingPosition();
+            // AdjustSpeed();
         }
 
         public void AdjustSpeed()
         {
-            rd2D.velocity = movementDirection * speed;
+            // rd2D.velocity = movementDirection * speed;
         }
 
         public void AdjustSpeed(float newSpeed)
         {
-            speed = newSpeed;
-            AdjustSpeed();
+            // speed = newSpeed;
+            // AdjustSpeed();
         }
 
         public void RelocateToPosition(Vector3 position)
         {
-            transform.position = position;
-            rd2D.velocity = Vector2.zero;
+            // transform.position = position;
+            // rd2D.velocity = Vector2.zero;
         }
 
         #endregion
