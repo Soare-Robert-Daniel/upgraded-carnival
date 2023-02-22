@@ -166,6 +166,7 @@ namespace Map
         private void LateUpdate()
         {
 
+            mobsSystem.MoveMobsToNextRooms(mobsControllerSystem.GetMobControllersPositionsArray(), roomsSystem.GetExitRoomPositions());
 
             for (var mobId = 0; mobId < mobsSystem.GetMobCount(); mobId++)
             {
@@ -389,7 +390,7 @@ namespace Map
             room.ID = GenRoomID();
             room.MapManager = this;
 
-            roomsSystem.AddRoom(RoomType.Empty, 0);
+            roomsSystem.AddRoom(RoomType.Empty, 0, room.GetExitPosition());
 
             roomsControllers.Add(room);
             room.UpdateRoomName();

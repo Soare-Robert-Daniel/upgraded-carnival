@@ -132,6 +132,11 @@ namespace GameEntities
             return currentCapacity;
         }
 
+        public Vector3[] GetMobControllersPositionsArray()
+        {
+            return mobsCurrentPositions;
+        }
+
         #region Job System - Test
 
         public struct MovementJob : IJob

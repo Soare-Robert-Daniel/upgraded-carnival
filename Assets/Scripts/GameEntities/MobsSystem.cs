@@ -100,6 +100,22 @@ namespace GameEntities
             }
         }
 
+        public void MoveMobsToNextRooms(Vector3[] mobsCurrentPosition, Vector3[] roomsExitPositions)
+        {
+            for (var i = 0; i < currentCapacity; i++)
+            {
+                if (mobsRoomStatus[i] != EntityRoomStatus.Moving) continue;
+
+                var roomExitPosition = roomsExitPositions[mobsRoomIndex[i]];
+                var distanceToRoomExit = Vector3.SqrMagnitude(mobsCurrentPosition[i] - roomExitPosition);
+
+                if (distanceToRoomExit > 0.1f) continue;
+
+                mobsRoomStatus[i] = EntityRoomStatus.Entered;
+                mobsRoomIndex[i]++;
+            }
+        }
+
         public void AddMobToDeploy(int mobIndex)
         {
             mobsToDeploy.Push(mobIndex);

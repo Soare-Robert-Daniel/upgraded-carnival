@@ -18,6 +18,7 @@ namespace GameEntities
 
         [SerializeField] private Rigidbody2D rd2D;
         [SerializeField] private HealthBarController healthBarController;
+        [SerializeField] private Vector3 exitPosition;
 
         #region Room Movement
 

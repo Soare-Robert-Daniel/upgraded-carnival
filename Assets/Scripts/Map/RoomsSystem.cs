@@ -12,6 +12,7 @@ namespace Map
         [SerializeField] private float[] roomsCurrentAttackTime;
         [SerializeField] private float[] roomsAttackTimeInterval;
         [SerializeField] private RoomType[] roomsType;
+        [SerializeField] private Vector3[] exitRoomPositions;
         private bool[] roomsToDisarm;
 
         public RoomsSystem(int initialCapacity = 0)
@@ -21,10 +22,11 @@ namespace Map
             roomsAttackTimeInterval = new float[initialCapacity];
             roomsType = new RoomType[initialCapacity];
             roomsToDisarm = new bool[initialCapacity];
+            exitRoomPositions = new Vector3[initialCapacity];
             currentCapacity = 0;
         }
 
-        public void AddRoom(RoomType roomType, float attackTimeInterval)
+        public void AddRoom(RoomType roomType, float attackTimeInterval, Vector3 exitRoomPosition)
         {
             var newSlot = currentCapacity;
             if (currentCapacity >= roomsCanFire.Length)
@@ -40,6 +42,7 @@ namespace Map
             roomsCurrentAttackTime[newSlot] = 0;
             roomsAttackTimeInterval[newSlot] = attackTimeInterval;
             roomsType[newSlot] = roomType;
+            exitRoomPositions[newSlot] = exitRoomPosition;
         }
 
         public void UpdateRoomsAttackTime(float deltaTime)
@@ -102,6 +105,11 @@ namespace Map
             }
         }
 
+        public Vector3[] GetExitRoomPositions()
+        {
+            return exitRoomPositions;
+        }
+
         public void ResizeStorage(int newCapacity)
         {
             Array.Resize(ref roomsCanFire, newCapacity);
@@ -109,6 +117,7 @@ namespace Map
             Array.Resize(ref roomsAttackTimeInterval, newCapacity);
             Array.Resize(ref roomsType, newCapacity);
             Array.Resize(ref roomsToDisarm, newCapacity);
+            Array.Resize(ref exitRoomPositions, newCapacity);
         }
     }
 }
