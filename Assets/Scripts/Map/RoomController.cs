@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using GameEntities;
+﻿using GameEntities;
 using Map.Room;
 using TMPro;
 using UnityEngine;
@@ -20,7 +19,6 @@ namespace Map
 
         [SerializeField] private MapManager mapManager;
         [SerializeField] private SpriteRenderer spriteRenderer;
-        [SerializeField] private List<int> entitiesInRoom;
 
         [SerializeField] private Transform startingPoint;
         [SerializeField] private Transform exitPoint;
@@ -45,6 +43,8 @@ namespace Map
         }
 
         public RoomSettings RoomSettings => roomSettings;
+        public Vector3 StartingPointPosition => startingPoint.position;
+        public Vector3 ExitPointPosition => exitPoint.position;
 
         private void Start()
         {
@@ -70,37 +70,6 @@ namespace Map
         }
 
         #endregion
-
-        public void UpdateState(RoomSettings newSettings)
-        {
-            roomSettings = newSettings;
-            UpdateSymbols();
-        }
-
-        public void RefreshStats()
-        {
-
-        }
-
-        public void SetPosition(Vector3 newPosition)
-        {
-            transform.position = newPosition;
-        }
-
-        public void SetSprite(Sprite sprite)
-        {
-            spriteRenderer.sprite = sprite;
-        }
-
-        public Vector3 GetStartingPosition()
-        {
-            return startingPoint.position;
-        }
-
-        public Vector3 GetExitPosition()
-        {
-            return exitPoint.position;
-        }
 
         #region UI
 

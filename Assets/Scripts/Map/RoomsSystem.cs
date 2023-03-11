@@ -12,6 +12,7 @@ namespace Map
         [SerializeField] private float[] roomsCurrentAttackTime;
         [SerializeField] private float[] roomsAttackTimeInterval;
         [SerializeField] private RoomType[] roomsType;
+        [SerializeField] private Vector3[] startRoomPositions;
         [SerializeField] private Vector3[] exitRoomPositions;
         private bool[] roomsToDisarm;
 
@@ -23,10 +24,13 @@ namespace Map
             roomsType = new RoomType[initialCapacity];
             roomsToDisarm = new bool[initialCapacity];
             exitRoomPositions = new Vector3[initialCapacity];
+            startRoomPositions = new Vector3[initialCapacity];
             currentCapacity = 0;
         }
 
-        public void AddRoom(RoomType roomType, float attackTimeInterval, Vector3 exitRoomPosition)
+        public int CurrentCapacity => currentCapacity;
+
+        public void AddRoom(RoomType roomType, float attackTimeInterval, Vector3 startRoomPosition, Vector3 exitRoomPosition)
         {
             var newSlot = currentCapacity;
             if (currentCapacity >= roomsCanFire.Length)
@@ -42,6 +46,8 @@ namespace Map
             roomsCurrentAttackTime[newSlot] = 0;
             roomsAttackTimeInterval[newSlot] = attackTimeInterval;
             roomsType[newSlot] = roomType;
+
+            startRoomPositions[newSlot] = startRoomPosition;
             exitRoomPositions[newSlot] = exitRoomPosition;
         }
 
@@ -105,6 +111,16 @@ namespace Map
             }
         }
 
+        public Vector3 GetStartRoomPosition(int roomIndex)
+        {
+            return startRoomPositions[roomIndex];
+        }
+
+        public Vector3 GetExitRoomPosition(int roomIndex)
+        {
+            return exitRoomPositions[roomIndex];
+        }
+
         public Vector3[] GetExitRoomPositions()
         {
             return exitRoomPositions;
@@ -118,6 +134,7 @@ namespace Map
             Array.Resize(ref roomsType, newCapacity);
             Array.Resize(ref roomsToDisarm, newCapacity);
             Array.Resize(ref exitRoomPositions, newCapacity);
+            Array.Resize(ref startRoomPositions, newCapacity);
         }
     }
 }

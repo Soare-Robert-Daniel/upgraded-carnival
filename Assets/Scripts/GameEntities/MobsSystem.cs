@@ -104,16 +104,16 @@ namespace GameEntities
         {
             for (var i = 0; i < currentCapacity; i++)
             {
-                if (mobsRoomStatus[i] != EntityRoomStatus.Moving) continue;
-
-                var roomExitPosition = roomsExitPositions[mobsRoomIndex[i]];
-                var distanceToRoomExit = Vector3.SqrMagnitude(mobsCurrentPosition[i] - roomExitPosition);
-
-                if (distanceToRoomExit > 0.1f) continue;
-
+                if (mobsRoomStatus[i] != EntityRoomStatus.Moving ||
+                    !CanMoveMobToNextRoom(mobsCurrentPosition[i], roomsExitPositions[mobsRoomIndex[i]])) continue;
                 mobsRoomStatus[i] = EntityRoomStatus.Entered;
-                mobsRoomIndex[i]++;
+                mobsRoomIndex[i] = Math.Clamp(mobsRoomIndex[i] + 1, 0, roomsExitPositions.Length - 1);
             }
+        }
+
+        public bool CanMoveMobToNextRoom(Vector3 currentPosition, Vector3 currentRoomExitPosition)
+        {
+            return Vector3.SqrMagnitude(currentPosition - currentRoomExitPosition) < 0.1f;
         }
 
         public void AddMobToDeploy(int mobIndex)

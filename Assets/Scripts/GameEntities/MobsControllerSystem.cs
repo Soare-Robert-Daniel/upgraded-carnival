@@ -113,7 +113,15 @@ namespace GameEntities
             return positions;
         }
 
-        public void UpdateMobPosition(int mobIndex, Vector3 position)
+        public void SetMobPosition(int mobIndex, Vector3 position)
+        {
+            if (mobIndex >= currentCapacity)
+                throw new Exception($"Mob index is out of bounds: {mobIndex} >= {currentCapacity}");
+
+            mobsCurrentPositions[mobIndex] = position;
+        }
+
+        public void UpdateMobPositionController(int mobIndex, Vector3 position)
         {
             if (mobIndex >= currentCapacity)
                 throw new Exception($"Mob index is out of bounds: {mobIndex} >= {currentCapacity}");

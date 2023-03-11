@@ -174,8 +174,9 @@ namespace Map
                 {
 
                     case EntityRoomStatus.Entered:
-                        mobIdToController[mobId].StartMovingInRoom(roomsControllers[mobsSystem.GetMobLocationRoomIndex(mobId)]);
                         mobsSystem.SetMobRoomStatus(mobId, EntityRoomStatus.Moving);
+                        mobsControllerSystem.SetMobPosition(mobId,
+                            roomsSystem.GetStartRoomPosition(mobsSystem.GetMobLocationRoomIndex(mobId)));
                         break;
                     case EntityRoomStatus.Moving:
                         break;
@@ -202,6 +203,7 @@ namespace Map
             roomsSystem.UpdateRoomsAttackTime(Time.deltaTime);
             runeStorage.UpdateRunesDurations(Time.deltaTime);
             HandleRuneAndDamagePerMob();
+            runeStorage.TransferBufferToStorage();
 
             CollectBountyFromMobs();
 
@@ -329,6 +331,11 @@ namespace Map
             RegisterMob(mobController);
         }
 
+        private void UpdateRuneStorageResizingCapacity()
+        {
+            runeStorage.ResizingCapacity = mobsSystem.GetMobCount() * roomsSystem.CurrentCapacity;
+        }
+
         #endregion
 
         #region Events
@@ -390,10 +397,11 @@ namespace Map
             room.ID = GenRoomID();
             room.MapManager = this;
 
-            roomsSystem.AddRoom(RoomType.Empty, 0, room.GetExitPosition());
+            roomsSystem.AddRoom(RoomType.Empty, 0, room.StartingPointPosition, room.ExitPointPosition);
 
             roomsControllers.Add(room);
             room.UpdateRoomName();
+            UpdateRuneStorageResizingCapacity();
         }
 
         private int GenRoomID()
@@ -561,6 +569,7 @@ namespace Map
 
             mobsSystem.AddMob(0, new SimpleMobClass(), 100, 3f);
             mobsControllerSystem.AddMobController(mob, mobStartingPoint.transform.position);
+            UpdateRuneStorageResizingCapacity();
             // Debug.Log($"Registering mob {mob.id}. Total mobs: {mobsSystem.GetMobCount()}. Total controllers: {mobsControllerSystem.GetMobControllersCount()}.");
         }
 
