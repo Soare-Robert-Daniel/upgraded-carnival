@@ -14,10 +14,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   intervals:
   - fromWave: 0
-    mobsNumber: 10000
-  - fromWave: 5
     mobsNumber: 10
+    mobs:
+    - mobClass: 10
+      mobsNumber: 10
+  - fromWave: 5
+    mobsNumber: 20
+    mobs:
+    - mobClass: 10
+      mobsNumber: 10
+    - mobClass: 11
+      mobsNumber: 5
+    - mobClass: 100
+      mobsNumber: 5
   - fromWave: 15
-    mobsNumber: 15
+    mobsNumber: 30
+    mobs:
+    - mobClass: 10
+      mobsNumber: 30
   - fromWave: 25
-    mobsNumber: 25
+    mobsNumber: 50
+    mobs: []

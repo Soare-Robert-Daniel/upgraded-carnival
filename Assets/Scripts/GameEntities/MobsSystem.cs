@@ -16,7 +16,7 @@ namespace GameEntities
         [SerializeField] private int[] mobsRoomIndex;
         [SerializeField] private EntityRoomStatus[] mobsRoomStatus;
 
-        [SerializeField] private EntityClass[] mobsClasses;
+        [SerializeField] private EntityClass[] mobsClasses; // Pretty useless in current implementation.
         [SerializeField] private float[] mobsHealth;
         [SerializeField] private float[] mobsSpeed;
 

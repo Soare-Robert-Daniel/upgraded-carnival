@@ -32,7 +32,9 @@ namespace Map.Room
             damage = BaseDamage;
             slow = 0f;
 
-            foreach (var rune in runeStorage.GetAllRunesCountForEntity(modId))
+            var runeCount = runeStorage.GetRuneCountForEntity(modId);
+
+            foreach (var rune in runeCount)
             {
                 if (damagePerRune.TryGetValue(rune.Key, out var value))
                 {

@@ -115,22 +115,6 @@ namespace GameEntities
                 emptySlots.Push(i);
             }
         }
-
-        public Dictionary<RuneType, int> GetAllRunesCountForEntity(int mobId)
-        {
-            var result = new Dictionary<RuneType, int>();
-            for (var i = 0; i < mobsIds.Length; i++)
-            {
-                if (mobsIds[i] != mobId) continue;
-                if (!result.ContainsKey(runesTypes[i]))
-                {
-                    result[runesTypes[i]] = 0;
-                }
-                result[runesTypes[i]]++;
-            }
-            return result;
-        }
-
         public void RemoveRunesForEntity(RuneType[] runeTypes, int mobId)
         {
             for (var i = 0; i < mobsIds.Length; i++)
@@ -175,6 +159,15 @@ namespace GameEntities
                     emptySlots.Push(i);
                 }
             }
+        }
+
+        public Dictionary<RuneType, int> GetRuneCountForEntity(int mobId)
+        {
+            if (!mobsRunes.ContainsKey(mobId))
+            {
+                mobsRunes.Add(mobId, new Dictionary<RuneType, int>());
+            }
+            return mobsRunes[mobId];
         }
 
         public struct RuneData

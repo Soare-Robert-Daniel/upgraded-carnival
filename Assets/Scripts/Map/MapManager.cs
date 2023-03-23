@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Economy;
 using GameEntities;
 using Map.Components;
@@ -64,9 +65,12 @@ namespace Map
         [Header("Internals")]
         [SerializeField] private float currentWaveTimer;
 
+        [SerializeField] private float currentSpawnTimer;
+
         [SerializeField] private int currentMobsPerWave;
         [SerializeField] private bool wavePrepared;
         [SerializeField] private List<float> spawnStartPerMob;
+        [SerializeField] private Wave waveCreator;
 
         [Header("Systems")]
         [SerializeField] private RuneStorage runeStorage;
@@ -78,15 +82,16 @@ namespace Map
         public UIState uiState;
 
         [SerializeField] private int selectedRoomId;
+        private Dictionary<MobClassType, MobModel> entityClassToModel;
         private JobHandle jobHandle;
 
         private Dictionary<Mob, int> mobControllerToId;
 
         private int mobGenID;
         private Dictionary<int, Mob> mobIdToController;
+        private MobsHandlerModule mobsHandlerModule;
         private int roomGenID;
         private Dictionary<RoomType, RoomRuneHandler> roomRuneHandlers;
-
         private Dictionary<RoomType, RoomModel> roomTypeToModels;
 
         private Stopwatch stopwatch;
@@ -112,6 +117,7 @@ namespace Map
             roomRuneHandlers = new Dictionary<RoomType, RoomRuneHandler>();
 
             currentWaveTimer = 0;
+            currentSpawnTimer = 0;
             wavePrepared = false;
 
             runeStorage = new RuneStorage(1000);
@@ -128,6 +134,16 @@ namespace Map
                 strategy.LoadFromModel(roomModel);
                 roomRuneHandlers.Add(roomModel.roomType, strategy);
             }
+
+            mobsHandlerModule = new MobsHandlerModule();
+
+            entityClassToModel = new Dictionary<MobClassType, MobModel>();
+            foreach (var entityModel in entityModels.List)
+            {
+                entityClassToModel.Add(entityModel.stats.mobClass, entityModel);
+            }
+
+            waveCreator = new Wave(waveMobNumberPerWaveModel, entityClassToModel);
 
             CreateLayout(startingLevelsNum);
 
@@ -146,6 +162,7 @@ namespace Map
             if (enableWave)
             {
                 currentWaveTimer += Time.deltaTime;
+                currentSpawnTimer += Time.deltaTime;
                 OnNextWaveTimeChanged?.Invoke(waveTimeInterval - currentWaveTimer);
             }
 
@@ -165,6 +182,13 @@ namespace Map
 
         private void LateUpdate()
         {
+            if (waveCreator.HasMobsToSpawn() && currentSpawnTimer > waveMobSpawnStartOffset)
+            {
+                if (TrySpawnMob())
+                {
+                    currentSpawnTimer = 0;
+                }
+            }
 
             mobsSystem.MoveMobsToNextRooms(mobsControllerSystem.GetMobControllersPositionsArray(), roomsSystem.GetExitRoomPositions());
 
@@ -220,10 +244,27 @@ namespace Map
                 StartWave();
             }
 
-            DeployMobs();
             stopwatch.Stop();
 
             OnMapLogicTimeChanged?.Invoke(stopwatch.ElapsedMilliseconds);
+        }
+        private bool TrySpawnMob()
+        {
+            if (mobsSystem.ReadyToDeployMobCount() == 0)
+                return false;
+
+            var mobData = waveCreator.DequeueMobsToSpawn().First();
+            var mobId = mobsSystem.PullMobsToDeploy().First();
+
+            mobIdToController[mobId].bounty = mobData.Bounty;
+            mobIdToController[mobId].speed = mobData.Stats.speed;
+
+            mobsSystem.SetMobRoomIndex(mobId, 0);
+            mobsSystem.SetMobRoomStatus(mobId, EntityRoomStatus.Entered);
+            mobsSystem.SetMobHealth(mobId, mobData.Stats.health);
+            mobsSystem.SetMobSpeed(mobId, mobData.Stats.speed);
+
+            return true;
         }
 
         #region Wave Gameplay
@@ -246,31 +287,14 @@ namespace Map
         public void CreateWave()
         {
             wavePrepared = false;
-            var startTime = 0f;
 
-            foreach (var mobToSpawn in mobsSystem.GetMobsToDeployArray())
-            {
-                spawnStartPerMob[mobToSpawn] = startTime;
-                startTime += waveMobSpawnStartOffset;
-            }
+            waveCreator.SetWave(waveNumber);
+            waveCreator.CreateMobsToSpawn();
         }
 
         public void PrepareNextRound()
         {
             wavePrepared = true;
-
-            // Refactor this.
-            foreach (var mobsNumberInterval in waveMobNumberPerWaveModel.intervals)
-            {
-                if (mobsNumberInterval.fromWave <= waveNumber + 1) // We prepare in advance.
-                {
-                    currentMobsPerWave = mobsNumberInterval.mobsNumber;
-                }
-                else
-                {
-                    break;
-                }
-            }
 
             ReadjustMobNumbers();
         }
@@ -283,9 +307,10 @@ namespace Map
             if (mobsSystem.GetMobCount() == 0)
             {
                 IncreaseMobStoreCapacity(currentMobsPerWave);
+
                 for (var i = 0; i < currentMobsPerWave; i++)
                 {
-                    CreateMob();
+                    DeployMob();
                 }
             }
             else
@@ -301,25 +326,17 @@ namespace Map
 
                 for (var i = 0; i < currentMobsPerWave - readyToSpawnMobs; i++)
                 {
-                    CreateMob();
+                    DeployMob();
                 }
             }
         }
 
-        private void DeployMobs()
-        {
-            foreach (var mobId in mobsSystem.PullMobsToDeploy())
-            {
-                mobsSystem.SetMobRoomIndex(mobId, 0);
-                mobsSystem.SetMobRoomStatus(mobId, EntityRoomStatus.Entered);
-            }
-        }
-
-        private void CreateMob()
+        private void DeployMob(MobClassType mobClass = MobClassType.SimpleMobClass)
         {
             // By letting the room to register himself in Start, it will be available for next round.
             var mobObj = Instantiate(mobTemplate, mobStartingPoint.transform);
             var mobController = mobObj.GetComponent<Mob>();
+            mobController.UpdateBodySprite(entityClassToModel[mobClass].assets.RenderedSprite);
 
             if (mobController == null)
             {
@@ -329,11 +346,6 @@ namespace Map
 
             mobController.Manager = this;
             RegisterMob(mobController);
-        }
-
-        private void UpdateRuneStorageResizingCapacity()
-        {
-            runeStorage.ResizingCapacity = mobsSystem.GetMobCount() * roomsSystem.CurrentCapacity;
         }
 
         #endregion
@@ -401,7 +413,6 @@ namespace Map
 
             roomsControllers.Add(room);
             room.UpdateRoomName();
-            UpdateRuneStorageResizingCapacity();
         }
 
         private int GenRoomID()
@@ -569,7 +580,6 @@ namespace Map
 
             mobsSystem.AddMob(0, new SimpleMobClass(), 100, 3f);
             mobsControllerSystem.AddMobController(mob, mobStartingPoint.transform.position);
-            UpdateRuneStorageResizingCapacity();
             // Debug.Log($"Registering mob {mob.id}. Total mobs: {mobsSystem.GetMobCount()}. Total controllers: {mobsControllerSystem.GetMobControllersCount()}.");
         }
 

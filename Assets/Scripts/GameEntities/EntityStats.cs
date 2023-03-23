@@ -37,7 +37,7 @@ namespace GameEntities
 
         public Rune SetDuration(float totalDuration)
         {
-            this.duration = totalDuration;
+            duration = totalDuration;
             return this;
         }
 
@@ -47,7 +47,7 @@ namespace GameEntities
         }
     }
 
-    public enum EntityClassType
+    public enum MobClassType
     {
         BaseMobClass = 0,
         SimpleMobClass = 10,
@@ -58,14 +58,14 @@ namespace GameEntities
     [Serializable]
     public class EntityClass
     {
-        [SerializeField] protected EntityClassType classType;
+        [SerializeField] protected MobClassType classType;
 
         public EntityClass()
         {
-            classType = EntityClassType.BaseMobClass;
+            classType = MobClassType.BaseMobClass;
         }
 
-        public EntityClassType ClassType => classType;
+        public MobClassType ClassType => classType;
     }
 
     [SerializeField]
@@ -73,7 +73,7 @@ namespace GameEntities
     {
         public SimpleMobClass()
         {
-            classType = EntityClassType.SimpleMobClass;
+            classType = MobClassType.SimpleMobClass;
         }
     }
 
@@ -82,7 +82,7 @@ namespace GameEntities
     {
         public SimpleFastMobClass()
         {
-            classType = EntityClassType.SimpleFastMobClass;
+            classType = MobClassType.SimpleFastMobClass;
         }
     }
 
@@ -91,7 +91,7 @@ namespace GameEntities
     {
         public HeavyMobClass()
         {
-            classType = EntityClassType.HeavyMobClass;
+            classType = MobClassType.HeavyMobClass;
         }
     }
 

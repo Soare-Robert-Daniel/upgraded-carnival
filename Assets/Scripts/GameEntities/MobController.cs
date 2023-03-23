@@ -16,9 +16,9 @@ namespace GameEntities
         [Header("Components")]
         [SerializeField] private MapManager manager;
 
-        [SerializeField] private Rigidbody2D rd2D;
         [SerializeField] private HealthBarController healthBarController;
-        [SerializeField] private Vector3 exitPosition;
+        [SerializeField] private SpriteRenderer bodySpriteRenderer;
+
 
         #region Room Movement
 
@@ -61,6 +61,11 @@ namespace GameEntities
         public void UpdateHealthBar(float healthPercentage)
         {
             healthBarController.SetPercentage(healthPercentage);
+        }
+
+        public void UpdateBodySprite(Sprite sprite)
+        {
+            bodySpriteRenderer.sprite = sprite;
         }
 
 

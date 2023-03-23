@@ -12,11 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2ea1c9f3c00c45b58d1a02b0903f119d, type: 3}
   m_Name: Simple Fast Mob
   m_EditorClassIdentifier: 
-  classType: 11
   stats:
-    mobClass:
-      classType: 0
+    mobClass: 11
     health: 100
-    maxHealth: 100
-    baseSpeed: 5
-    runes: []
+    speed: 4
+  bounty:
+    currency: 0
+    value: 50
+  assets:
+    textures:
+    - {fileID: 2800000, guid: 2eeae04934bc62742972551774b0658a, type: 3}
