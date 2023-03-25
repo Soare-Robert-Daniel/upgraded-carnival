@@ -21,6 +21,10 @@ MonoBehaviour:
   runesAction:
   - type: 1
     damage: 20
+    slow: 0
     duration: 0
     actionType: 2
   sprite: {fileID: 21300000, guid: ce4337688094f7f428e1bef1b45b143d, type: 3}
+  mainTexture: {fileID: 2800000, guid: d6bd18d1f8cffe646bda226289f957f9, type: 3}
+  mainTextureMask: {fileID: 2800000, guid: 82baa32fc59827e4cb12235f1efc2370, type: 3}
+  secondaryTexture: {fileID: 2800000, guid: 52375f04678c3be4fb41d1c92fe56fa5, type: 3}

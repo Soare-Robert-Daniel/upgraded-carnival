@@ -26,7 +26,7 @@ Transform:
   m_GameObject: {fileID: 30184730925365538}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 2, y: 1.2, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1442393835657327057}
@@ -52,7 +52,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  - {fileID: 2100000, guid: ad5dfd9ae4b0b4642995b41526c498ce, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -73,7 +73,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: -1
-  m_Sprite: {fileID: 21300000, guid: 535b82eca347aa2408a37d4e6ca04af6, type: 3}
+  m_Sprite: {fileID: 21300000, guid: d6bd18d1f8cffe646bda226289f957f9, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -261,7 +261,6 @@ MonoBehaviour:
   id: 0
   mapManager: {fileID: 0}
   spriteRenderer: {fileID: 3838943070032395906}
-  entitiesInRoom: 
   startingPoint: {fileID: 1442393835627268242}
   exitPoint: {fileID: 1442393835938295583}
   roomName: {fileID: 1442393836433530303}
@@ -379,8 +378,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 28.746, y: 11.3408}
+  m_AnchoredPosition: {x: 0.0598, y: 1.8}
+  m_SizeDelta: {x: 29.7093, y: 11.3408}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!23 &1442393836433530300
 MeshRenderer:
@@ -471,14 +470,14 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 12
-  m_fontSizeBase: 12
+  m_fontSize: 18
+  m_fontSizeBase: 18
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 1
-  m_HorizontalAlignment: 1
+  m_HorizontalAlignment: 2
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -507,7 +506,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0.18193245, y: 0.21966839, z: 6.539167, w: 2.52225}
+  m_margin: {x: 0.056287766, y: 2.6906643, z: 0.0056858063, w: 0.0931344}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   _SortingLayer: 0

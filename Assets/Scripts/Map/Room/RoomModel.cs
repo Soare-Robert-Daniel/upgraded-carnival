@@ -44,5 +44,9 @@ namespace Map.Room
 
         [Header("Assets")]
         public Sprite sprite;
+
+        public Texture2D mainTexture;
+        public Texture2D mainTextureMask;
+        public Texture2D secondaryTexture;
     }
 }
