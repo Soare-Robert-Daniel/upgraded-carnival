@@ -30,6 +30,7 @@ namespace UI
             var root = menu.rootVisualElement;
 
             container = root.Q<VisualElement>("Container");
+            isOpen = container.style.display.value == DisplayStyle.None;
 
             var restartBtn = root.Q<Button>("RestartBtn");
             restartBtn.clicked += () =>
@@ -76,7 +77,7 @@ namespace UI
 
         public void UpdateContainerVisibility()
         {
-            container.visible = isOpen;
+            container.style.display = isOpen ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
         private IEnumerator LoadScene(string sceneName)

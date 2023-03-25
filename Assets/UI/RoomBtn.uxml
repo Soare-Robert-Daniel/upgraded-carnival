@@ -1,14 +1,19 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" editor-extension-mode="False">
-    <ui:VisualElement
-            style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); align-items: center; max-width: none; background-image: resource(&apos;personal/actionTreeBackgroundWithoutBorder&apos;); -unity-background-image-tint-color: rgb(53, 94, 54); justify-content: space-between; border-top-left-radius: 8px; border-bottom-left-radius: 8px; border-top-right-radius: 8px; border-bottom-right-radius: 8px; margin-left: 5px; margin-right: 5px; margin-top: 5px; margin-bottom: 5px; width: 250px;">
-        <ui:VisualElement name="MainSprite"
-                          style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); max-height: 150px; max-width: none; width: 100%; height: 150px; background-image: url(&apos;project://database/Packages/com.unity.2d.animation/Editor/Assets/ComponentIcons/Animation.IKFabrik%20On@256.png?fileID=2800000&amp;guid=b533c652136df4744a089524507a44c6&amp;type=3#Animation.IKFabrik On@256&apos;); -unity-background-scale-mode: scale-to-fit; align-self: auto; flex-direction: column;"/>
-        <ui:VisualElement
-                style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); width: 100%; justify-content: flex-end; align-items: center;">
+    <ui:VisualElement name="VisualElement"
+                      style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); align-items: center; max-width: none; background-image: none; -unity-background-image-tint-color: rgb(53, 94, 54); justify-content: space-between; border-top-left-radius: 8px; border-bottom-left-radius: 8px; border-top-right-radius: 8px; border-bottom-right-radius: 8px; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; width: 100%; flex-direction: row; padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0;">
+        <ui:VisualElement name="VisualElement"
+                          style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); width: auto; justify-content: center; align-items: center; height: auto; -unity-background-image-tint-color: rgb(42, 168, 157); background-image: url(&apos;project://database/Assets/Sprites/Base_Texture.png?fileID=2800000&amp;guid=9cfdac13194f33e47978453a5dcfbb8e&amp;type=3#Base_Texture&apos;); flex-direction: row-reverse; align-self: center; border-top-left-radius: 5px; border-bottom-left-radius: 5px; margin-top: 5px; padding-left: 5px; padding-right: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; padding-top: 5px; padding-bottom: 5px;">
+            <ui:VisualElement
+                    style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); border-top-left-radius: 0; border-bottom-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0;">
+                <ui:Label tabindex="-1"
+                          text="A tower that attack at a constant interval time adsfas  dasklfj kljflaskd jflksdj flkjasdlk jsldkj fkdlsj lfkjdslf jklsdkj lksdjf lsdjk f;lsjkdf;l j"
+                          display-tooltip-when-elided="true" name="RoomDescription"
+                          style="font-size: 18px; white-space: normal; flex-wrap: wrap; color: rgb(255, 255, 255); -unity-font-style: normal;"/>
+            </ui:VisualElement>
+            <ui:Button text="Buy Room Type" display-tooltip-when-elided="true" name="BuyRoomBtn"
+                       style="height: 50px; width: auto; font-size: 18px; border-top-left-radius: 0; border-bottom-left-radius: 0; border-top-right-radius: 5px; border-bottom-right-radius: 5px; -unity-font-style: bold; margin-bottom: 0; margin-left: 0; margin-right: 10px; margin-top: 0; border-left-width: 0; border-right-width: 0; border-top-width: 0; border-bottom-width: 0;"/>
             <ui:Label tabindex="-1" text="600 Gold" display-tooltip-when-elided="true" name="RoomPrice"
-                      style="background-image: resource(&apos;personal/actionTreeBackgroundWithoutBorder&apos;); padding-left: 20px; padding-right: 20px; padding-top: 5px; padding-bottom: 5px; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; -unity-font-style: bold; border-top-left-radius: 5px; border-top-right-radius: 5px; -unity-background-image-tint-color: rgb(255, 250, 11); font-size: 16px;"/>
+                      style="background-image: url(&apos;project://database/Assets/Sprites/Base_Texture.png?fileID=2800000&amp;guid=9cfdac13194f33e47978453a5dcfbb8e&amp;type=3#Base_Texture&apos;); padding-left: 20px; padding-right: 20px; padding-top: 5px; padding-bottom: 5px; margin-left: 0; margin-right: 0; margin-top: 0; margin-bottom: 0; -unity-font-style: bold; border-top-left-radius: 10px; border-top-right-radius: 0; -unity-background-image-tint-color: rgb(255, 250, 11); font-size: 16px; border-bottom-left-radius: 10px; border-bottom-right-radius: 0; height: 50px; justify-content: center; align-items: center; -unity-text-align: middle-center;"/>
         </ui:VisualElement>
-        <ui:Button text="Buy Room Type" display-tooltip-when-elided="true" name="BuyRoomBtn"
-                   style="height: 50px; width: 100%; font-size: 18px; border-top-left-radius: 5px; border-bottom-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; -unity-font-style: bold; margin-bottom: 0; margin-left: 0; margin-right: 0; margin-top: 0; border-left-width: 0; border-right-width: 0; border-top-width: 0; border-bottom-width: 0;"/>
     </ui:VisualElement>
 </ui:UXML>

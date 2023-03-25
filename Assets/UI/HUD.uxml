@@ -6,7 +6,7 @@
         <ui:VisualElement name="Right"
                           style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); height: auto; max-width: none;">
             <ui:VisualElement name="PlayerInfo"
-                              style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: resource(&apos;personal/actionTreeBackgroundWithoutBorder&apos;); padding-left: 15px; padding-right: 15px; padding-top: 15px; padding-bottom: 15px; border-left-width: 0; border-right-width: 0; border-top-width: 0; border-bottom-width: 0; border-top-left-radius: 20px; border-bottom-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px; max-width: 300px;">
+                              style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Sprites/Base_Texture.png?fileID=2800000&amp;guid=9cfdac13194f33e47978453a5dcfbb8e&amp;type=3#Base_Texture&apos;); padding-left: 15px; padding-right: 15px; padding-top: 15px; padding-bottom: 15px; border-left-width: 0; border-right-width: 0; border-top-width: 0; border-bottom-width: 0; border-top-left-radius: 20px; border-bottom-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px; max-width: 300px;">
                 <ui:Label tabindex="-1" text="Gold: 500" display-tooltip-when-elided="true" name="GoldLabel"
                           style="font-size: 25px; -unity-font-style: bold;"/>
                 <ui:Label tabindex="-1" text="Next Wave in: 60" display-tooltip-when-elided="true" name="NextWaveLabel"
@@ -29,7 +29,7 @@
                 <ui:Button text="Pause" display-tooltip-when-elided="true" name="PauseBtn"
                            style="font-size: 24px; max-width: 150px; -unity-font-style: bold; border-top-left-radius: 20px; border-bottom-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px; background-color: rgb(0, 200, 204); color: rgb(0, 0, 0); margin-right: 10px;"/>
                 <ui:VisualElement
-                        style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); align-items: center; justify-content: center; background-image: resource(&apos;personal/actionTreeBackgroundWithoutBorder&apos;); -unity-background-image-tint-color: rgb(255, 43, 0); border-top-left-radius: 20px; border-bottom-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px; margin-right: 20px;">
+                        style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); align-items: center; justify-content: center; background-image: url(&apos;project://database/Assets/Sprites/Base_Texture.png?fileID=2800000&amp;guid=9cfdac13194f33e47978453a5dcfbb8e&amp;type=3#Base_Texture&apos;); -unity-background-image-tint-color: rgb(255, 43, 0); border-top-left-radius: 20px; border-bottom-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px; margin-right: 20px;">
                     <ui:Label tabindex="-1" text="Health 2000" display-tooltip-when-elided="true"
                               name="RemainingHealthLabel"
                               style="font-size: 25px; -unity-font-style: bold; background-color: rgba(0, 0, 0, 0); color: rgb(255, 255, 255);"/>
@@ -42,7 +42,7 @@
             <ui:VisualElement name="VisualElement"
                               style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); height: 10px; border-top-left-radius: 0; border-bottom-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0;">
                 <ui:VisualElement
-                        style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; background-image: resource(&apos;personal/actionTreeBackgroundWithoutBorder&apos;); -unity-background-image-tint-color: rgb(246, 255, 0); padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; border-top-left-radius: 20px; border-bottom-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px;">
+                        style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; background-image: url(&apos;project://database/Assets/Sprites/Base_Texture.png?fileID=2800000&amp;guid=9cfdac13194f33e47978453a5dcfbb8e&amp;type=3#Base_Texture&apos;); -unity-background-image-tint-color: rgb(246, 255, 0); padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; border-top-left-radius: 20px; border-bottom-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px;">
                     <ui:Label tabindex="-1" text="Map (ms):" display-tooltip-when-elided="true" name="Label"
                               style="align-self: center; -unity-text-align: upper-center; font-size: 20px; -unity-font-style: bold;"/>
                     <ui:Label tabindex="-1" text="20" display-tooltip-when-elided="true" name="mapLogicTimeLabel"
