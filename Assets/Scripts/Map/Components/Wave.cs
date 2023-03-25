@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Economy;
 using GameEntities;
+using UnityEngine;
 
 namespace Map.Components
 {
@@ -104,6 +105,8 @@ namespace Map.Components
                     MobsToSpawn.Enqueue(MobBuilders[mob.mobClass].Build());
                 }
             }
+
+            Debug.Log($"Wave {CurrentWave} mobs to spawn: {MobsToSpawn.Count}");
         }
 
         public IEnumerable<MobToSpawn> DequeueMobsToSpawn()
@@ -117,6 +120,10 @@ namespace Map.Components
         public bool HasMobsToSpawn()
         {
             return MobsToSpawn.Count > 0;
+        }
+        public int GetMobsToSpawnCount()
+        {
+            return MobsToSpawn.Count;
         }
     }
 }

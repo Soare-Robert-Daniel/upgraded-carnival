@@ -92,9 +92,9 @@ namespace GameEntities
 
         public void UpdateMobControllersPositions()
         {
-            if (mobsCurrentPositions.Length != currentCapacity)
+            if (mobsCurrentPositions.Length < currentCapacity)
                 throw new Exception(
-                    $"Positions array length does not match current capacity: {mobsCurrentPositions.Length} != {currentCapacity}");
+                    $"Positions array length is lower than current mobs capacity: {mobsCurrentPositions.Length} < {currentCapacity}");
 
             for (var i = 0; i < currentCapacity; i++)
             {

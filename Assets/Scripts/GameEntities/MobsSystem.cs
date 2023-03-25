@@ -12,7 +12,12 @@ namespace GameEntities
     [Serializable]
     public class MobsSystem
     {
+        [Header("Settings")]
+        [SerializeField] private float moveToNextRoomThreshold = 20;
+
+        [Header("Internals")]
         [SerializeField] private int currentCapacity;
+
         [SerializeField] private int[] mobsRoomIndex;
         [SerializeField] private EntityRoomStatus[] mobsRoomStatus;
 
@@ -23,6 +28,7 @@ namespace GameEntities
         [SerializeField] private float[] attackDamageReceived;
 
         private Stack<int> mobsToDeploy;
+
 
         public MobsSystem(int initialCapacity = 0)
         {
@@ -100,20 +106,35 @@ namespace GameEntities
             }
         }
 
-        public void MoveMobsToNextRooms(Vector3[] mobsCurrentPosition, Vector3[] roomsExitPositions)
+        public void MoveMobsToNextRooms(int roomsNumber)
         {
             for (var i = 0; i < currentCapacity; i++)
             {
-                if (mobsRoomStatus[i] != EntityRoomStatus.Moving ||
-                    !CanMoveMobToNextRoom(mobsCurrentPosition[i], roomsExitPositions[mobsRoomIndex[i]])) continue;
+                if (mobsRoomStatus[i] != EntityRoomStatus.Exiting) continue;
                 mobsRoomStatus[i] = EntityRoomStatus.Entered;
-                mobsRoomIndex[i] = Math.Clamp(mobsRoomIndex[i] + 1, 0, roomsExitPositions.Length - 1);
+                mobsRoomIndex[i] = Math.Clamp(mobsRoomIndex[i] + 1, 0, roomsNumber - 1);
             }
+        }
+
+        public void UpdateMobsRoomStatus(Vector3[] mobsCurrentPosition, Vector3[] roomsExitPositions)
+        {
+            for (var i = 0; i < currentCapacity; i++)
+            {
+                if (mobsRoomStatus[i] != EntityRoomStatus.Moving) continue;
+                if (CanMoveMobToNextRoom(mobsCurrentPosition[i], roomsExitPositions[mobsRoomIndex[i]]))
+                {
+                    mobsRoomStatus[i] = EntityRoomStatus.Exiting;
+                }
+            }
+
         }
 
         public bool CanMoveMobToNextRoom(Vector3 currentPosition, Vector3 currentRoomExitPosition)
         {
-            return Vector3.SqrMagnitude(currentPosition - currentRoomExitPosition) < 0.1f;
+            // INFO: This is a very simple implementation. We might want to improve it in the future.
+            // Debug.Log(
+            //     $"Mob: {currentCapacity} | Exit: {currentRoomExitPosition} | {Vector2.SqrMagnitude(currentRoomExitPosition - currentPosition)} < {moveToNextRoomThreshold} ");
+            return Vector2.SqrMagnitude(currentRoomExitPosition - currentPosition) < moveToNextRoomThreshold;
         }
 
         public void AddMobToDeploy(int mobIndex)

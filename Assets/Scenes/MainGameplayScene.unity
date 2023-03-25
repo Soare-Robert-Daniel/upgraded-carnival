@@ -530,6 +530,7 @@ MonoBehaviour:
     runesTypes: 
     runesDuration: []
   mobsSystem:
+    moveToNextRoomThreshold: 22
     currentCapacity: 0
     mobsRoomIndex: 
     mobsRoomStatus: 
@@ -1779,6 +1780,10 @@ PrefabInstance:
     - target: {fileID: 3078138613014809113, guid: bf62d0815a7c1a049a12b9166531684b, type: 3}
       propertyPath: m_Name
       value: MobV2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3078138613014809113, guid: bf62d0815a7c1a049a12b9166531684b, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8705225584675725169, guid: bf62d0815a7c1a049a12b9166531684b, type: 3}
       propertyPath: manager

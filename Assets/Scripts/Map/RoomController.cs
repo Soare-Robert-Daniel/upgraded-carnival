@@ -19,6 +19,7 @@ namespace Map
 
         [SerializeField] private MapManager mapManager;
         [SerializeField] private SpriteRenderer spriteRenderer;
+        [SerializeField] private Renderer backgroundRenderer;
 
         [SerializeField] private Transform startingPoint;
         [SerializeField] private Transform exitPoint;
@@ -80,7 +81,9 @@ namespace Map
 
         public void UpdateVisual(RoomModel roomModel)
         {
-            spriteRenderer.sprite = roomModel.sprite;
+            backgroundRenderer.material.SetTexture("_MainTex", roomModel.mainTexture);
+            backgroundRenderer.material.SetTexture("_MainTexMask", roomModel.mainTextureMask);
+            backgroundRenderer.material.SetTexture("_SecondaryTex", roomModel.secondaryTexture);
             UpdateRoomName();
         }
 

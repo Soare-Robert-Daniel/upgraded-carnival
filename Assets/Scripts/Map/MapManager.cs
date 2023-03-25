@@ -190,7 +190,7 @@ namespace Map
                 }
             }
 
-            mobsSystem.MoveMobsToNextRooms(mobsControllerSystem.GetMobControllersPositionsArray(), roomsSystem.GetExitRoomPositions());
+            mobsSystem.UpdateMobsRoomStatus(mobsControllerSystem.GetMobControllersPositionsArray(), roomsSystem.GetExitRoomPositions());
 
             for (var mobId = 0; mobId < mobsSystem.GetMobCount(); mobId++)
             {
@@ -210,10 +210,6 @@ namespace Map
                             mobsSystem.SetMobRoomStatus(mobId, EntityRoomStatus.Retiring);
                             OnMobReachedFinalRoom?.Invoke(mobIdToController[mobId]);
                         }
-                        else
-                        {
-                            MoveMobToNextRoom(mobId);
-                        }
                         break;
                     case EntityRoomStatus.Retiring:
                         break;
@@ -224,6 +220,8 @@ namespace Map
                 }
             }
 
+            mobsSystem.MoveMobsToNextRooms(roomsControllers.Count);
+
             roomsSystem.UpdateRoomsAttackTime(Time.deltaTime);
             runeStorage.UpdateRunesDurations(Time.deltaTime);
             HandleRuneAndDamagePerMob();
@@ -233,11 +231,6 @@ namespace Map
 
             mobsSystem.MoveRetiringMobsToDeploy();
             roomsSystem.DisarmRooms();
-
-            if (!wavePrepared && waveTimeInterval - currentWaveTimer < 5f)
-            {
-                PrepareNextRound();
-            }
 
             if (currentWaveTimer > waveTimeInterval)
             {
@@ -279,9 +272,8 @@ namespace Map
 
         public IEnumerator ManualStartWave()
         {
-            PrepareNextRound();
             yield return new WaitForSeconds(1.0f);
-            StartWave();
+            CreateWave();
         }
 
         public void CreateWave()
@@ -290,49 +282,40 @@ namespace Map
 
             waveCreator.SetWave(waveNumber);
             waveCreator.CreateMobsToSpawn();
-        }
-
-        public void PrepareNextRound()
-        {
-            wavePrepared = true;
-
             ReadjustMobNumbers();
         }
 
+        // public void PrepareNextRound()
+        // {
+        //     wavePrepared = true;
+        //
+        //     ReadjustMobNumbers();
+        // }
+        //
         private void ReadjustMobNumbers()
         {
-            // Create more if we don't have enough _available_ mobs.
-            // TODO: Add new _available_ mobs 
-
-            if (mobsSystem.GetMobCount() == 0)
+            // If there are fewer mobs to deploy than the number of the wave, we need to add more mobs to the pool.
+            var mobsToDeploy = waveCreator.GetMobsToSpawnCount();
+            var mobsInPool = mobsSystem.ReadyToDeployMobCount();
+            var mobsToAdd = mobsToDeploy - mobsInPool;
+            Debug.Log($"Mobs to deploy: {mobsToDeploy}, Mobs in pool: {mobsInPool}, Mobs to add: {mobsToAdd}");
+            if (mobsToAdd > 0)
             {
-                IncreaseMobStoreCapacity(currentMobsPerWave);
-
-                for (var i = 0; i < currentMobsPerWave; i++)
-                {
-                    DeployMob();
-                }
+                AddMobsToPool(mobsToAdd);
             }
-            else
+
+        }
+        private void AddMobsToPool(int mobsToAdd)
+        {
+            for (var i = 0; i < mobsToAdd; i++)
             {
-                var readyToSpawnMobs = mobsSystem.ReadyToDeployMobCount();
-
-                if (currentMobsPerWave <= readyToSpawnMobs) return;
-                // Debug.Log($"Create {currentMobsPerWave - readyToSpawnMobs} mobs");
-
-                // Debug.Log(mobsControllerSystem.GetMobControllersCount() + currentMobsPerWave - readyToSpawnMobs);
-
-                IncreaseMobStoreCapacity(mobsControllerSystem.GetMobControllersCount() + currentMobsPerWave - readyToSpawnMobs);
-
-                for (var i = 0; i < currentMobsPerWave - readyToSpawnMobs; i++)
-                {
-                    DeployMob();
-                }
+                CreateMobAndAddToPool();
             }
         }
 
-        private void DeployMob(MobClassType mobClass = MobClassType.SimpleMobClass)
+        private void CreateMobAndAddToPool(MobClassType mobClass = MobClassType.SimpleMobClass)
         {
+            Debug.Log("Creating mob and adding to pool");
             // By letting the room to register himself in Start, it will be available for next round.
             var mobObj = Instantiate(mobTemplate, mobStartingPoint.transform);
             var mobController = mobObj.GetComponent<Mob>();

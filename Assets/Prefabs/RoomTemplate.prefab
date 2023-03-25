@@ -261,6 +261,7 @@ MonoBehaviour:
   id: 0
   mapManager: {fileID: 0}
   spriteRenderer: {fileID: 3838943070032395906}
+  backgroundRenderer: {fileID: 3838943070032395906}
   startingPoint: {fileID: 1442393835627268242}
   exitPoint: {fileID: 1442393835938295583}
   roomName: {fileID: 1442393836433530303}
@@ -291,7 +292,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1442393835938295582}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 13.6, y: -4.5, z: -2}
+  m_LocalPosition: {x: 12.66, y: -4.5, z: -2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
