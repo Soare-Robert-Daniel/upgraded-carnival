@@ -24,7 +24,6 @@ namespace GameEntities
         [SerializeField] private EntityClass[] mobsClasses; // Pretty useless in current implementation.
         [SerializeField] private float[] mobsHealth;
         [SerializeField] private float[] mobsSpeed;
-
         [SerializeField] private float[] attackDamageReceived;
 
         private Stack<int> mobsToDeploy;
@@ -116,12 +115,21 @@ namespace GameEntities
             }
         }
 
-        public void UpdateMobsRoomStatus(Vector3[] mobsCurrentPosition, Vector3[] roomsExitPositions)
+        public void UpdateMobsRoomStatus(Vector3[] mobsCurrentPosition, Path path)
         {
             for (var i = 0; i < currentCapacity; i++)
             {
+                if (mobsRoomStatus[i] == EntityRoomStatus.Exiting)
+                {
+                    if (!path.IsInRoom(mobsCurrentPosition[i], mobsRoomIndex[i]) &&
+                        path.FindRoomIndex(mobsCurrentPosition[i], mobsRoomIndex[i]) != Path.NoRoomFound)
+                    {
+                        mobsRoomStatus[i] = EntityRoomStatus.Entered;
+                    }
+                }
+
                 if (mobsRoomStatus[i] != EntityRoomStatus.Moving) continue;
-                if (CanMoveMobToNextRoom(mobsCurrentPosition[i], roomsExitPositions[mobsRoomIndex[i]]))
+                if (!path.IsInRoom(mobsCurrentPosition[i], mobsRoomIndex[i]))
                 {
                     mobsRoomStatus[i] = EntityRoomStatus.Exiting;
                 }

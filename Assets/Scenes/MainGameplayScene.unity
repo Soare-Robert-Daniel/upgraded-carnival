@@ -506,7 +506,7 @@ MonoBehaviour:
   levelsNum: 0
   currentPricePerLevel: 0
   pricePerLevelMultiplier: 0
-  offset: {x: 0, y: 16, z: 0}
+  offset: {x: 0, y: 18, z: 0}
   levelsControllers: []
   roomsControllers: []
   entityRoomStatus: 
@@ -524,6 +524,11 @@ MonoBehaviour:
   currentMobsPerWave: 3
   wavePrepared: 0
   spawnStartPerMob: []
+  path:
+    enterPoints: []
+    exitPoints: []
+    currentCapacity: 0
+    heightDistanceThreshold: 0.1
   runeStorage:
     resizingCapacity: 0
     mobsIds: 
@@ -544,8 +549,6 @@ MonoBehaviour:
     roomsCurrentAttackTime: []
     roomsAttackTimeInterval: []
     roomsType: 
-    startRoomPositions: []
-    exitRoomPositions: []
   mobsControllerSystem:
     currentCapacity: 0
     mobsController: []
@@ -992,7 +995,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 691233246}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -81.6, y: 22.14, z: 0}
+  m_LocalPosition: {x: -81.6, y: 29.9, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1206,7 +1209,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 800240239}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -50.6, y: -13.6, z: 0}
+  m_LocalPosition: {x: -50.6, y: -35.6, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1235,7 +1238,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2811519476003989977, guid: 5d183f5f1909c2e489f21ef96f60a7e9, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.26
+      value: -1.6
       objectReference: {fileID: 0}
     - target: {fileID: 2811519476003989977, guid: 5d183f5f1909c2e489f21ef96f60a7e9, type: 3}
       propertyPath: m_LocalPosition.z
@@ -1523,7 +1526,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2811519476003989977, guid: 5d183f5f1909c2e489f21ef96f60a7e9, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 10.92
+      value: 14.8
       objectReference: {fileID: 0}
     - target: {fileID: 2811519476003989977, guid: 5d183f5f1909c2e489f21ef96f60a7e9, type: 3}
       propertyPath: m_LocalPosition.z
@@ -1648,7 +1651,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2139522142}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -84.3, y: -27.8, z: 0}
+  m_LocalPosition: {x: -84.3, y: -51.8, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1677,7 +1680,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2811519476003989977, guid: 5d183f5f1909c2e489f21ef96f60a7e9, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -10.32
+      value: -18.6
       objectReference: {fileID: 0}
     - target: {fileID: 2811519476003989977, guid: 5d183f5f1909c2e489f21ef96f60a7e9, type: 3}
       propertyPath: m_LocalPosition.z

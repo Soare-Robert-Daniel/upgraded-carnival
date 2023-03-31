@@ -71,6 +71,7 @@ namespace Map
         [SerializeField] private bool wavePrepared;
         [SerializeField] private List<float> spawnStartPerMob;
         [SerializeField] private Wave waveCreator;
+        [SerializeField] private Path path;
 
         [Header("Systems")]
         [SerializeField] private RuneStorage runeStorage;
@@ -124,6 +125,7 @@ namespace Map
             roomsSystem = new RoomsSystem(100);
             mobsSystem = new MobsSystem(100);
             mobsControllerSystem = new MobsControllerSystem(100);
+            path = new Path(100);
 
             roomTypeToModels = new Dictionary<RoomType, RoomModel>();
             foreach (var roomModel in roomModels.list)
@@ -190,17 +192,18 @@ namespace Map
                 }
             }
 
-            mobsSystem.UpdateMobsRoomStatus(mobsControllerSystem.GetMobControllersPositionsArray(), roomsSystem.GetExitRoomPositions());
+            mobsSystem.UpdateMobsRoomStatus(mobsControllerSystem.GetMobControllersPositionsArray(), path);
 
             for (var mobId = 0; mobId < mobsSystem.GetMobCount(); mobId++)
             {
                 switch (mobsSystem.GetMobRoomStatus(mobId))
                 {
-
                     case EntityRoomStatus.Entered:
                         mobsSystem.SetMobRoomStatus(mobId, EntityRoomStatus.Moving);
-                        mobsControllerSystem.SetMobPosition(mobId,
-                            roomsSystem.GetStartRoomPosition(mobsSystem.GetMobLocationRoomIndex(mobId)));
+                        if (path.NeedToTeleport(mobsControllerSystem.GetMobPosition(mobId), mobsSystem.GetMobLocationRoomIndex(mobId)))
+                        {
+                            mobsControllerSystem.SetMobPosition(mobId, path.GetEnterPoint(mobsSystem.GetMobLocationRoomIndex(mobId)));
+                        }
                         break;
                     case EntityRoomStatus.Moving:
                         break;
@@ -393,6 +396,7 @@ namespace Map
             room.MapManager = this;
 
             roomsSystem.AddRoom(RoomType.Empty, 0, room.StartingPointPosition, room.ExitPointPosition);
+            path.AddPath(room.StartingPointPosition, room.ExitPointPosition);
 
             roomsControllers.Add(room);
             room.UpdateRoomName();

@@ -145,6 +145,14 @@ namespace GameEntities
             return mobsCurrentPositions;
         }
 
+        public Vector3 GetMobPosition(int mobIndex)
+        {
+            if (mobIndex >= currentCapacity)
+                throw new Exception($"Mob index is out of bounds: {mobIndex} >= {currentCapacity}");
+
+            return mobsCurrentPositions[mobIndex];
+        }
+
         #region Job System - Test
 
         public struct MovementJob : IJob
