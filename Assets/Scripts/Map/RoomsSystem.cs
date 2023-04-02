@@ -27,6 +27,8 @@ namespace Map
 
         public int CurrentCapacity => currentCapacity;
 
+        public int FinalRoom => currentCapacity - 1;
+
         public void AddRoom(RoomType roomType, float attackTimeInterval, Vector3 startRoomPosition, Vector3 exitRoomPosition)
         {
             var newSlot = currentCapacity;

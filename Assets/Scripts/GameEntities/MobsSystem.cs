@@ -28,7 +28,6 @@ namespace GameEntities
 
         private Stack<int> mobsToDeploy;
 
-
         public MobsSystem(int initialCapacity = 0)
         {
             mobsRoomIndex = new int[initialCapacity];
@@ -102,6 +101,7 @@ namespace GameEntities
                 // INFO: In the future, we might want to keep track of the retiring mobs for animation and have another system to keep track of the animations.
                 mobsRoomStatus[i] = EntityRoomStatus.ReadyToSpawn;
                 AddMobToDeploy(i);
+                // TODO: Move mob out of the visual area.
             }
         }
 
@@ -111,6 +111,11 @@ namespace GameEntities
             {
                 if (mobsRoomStatus[i] != EntityRoomStatus.Exiting) continue;
                 mobsRoomStatus[i] = EntityRoomStatus.Entered;
+                if (mobsRoomIndex[i] + 1 >= roomsNumber)
+                {
+                    mobsRoomStatus[i] = EntityRoomStatus.Retiring;
+
+                }
                 mobsRoomIndex[i] = Math.Clamp(mobsRoomIndex[i] + 1, 0, roomsNumber - 1);
             }
         }
