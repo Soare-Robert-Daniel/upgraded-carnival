@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Economy;
 using Map;
 using UnityEngine;
 
@@ -23,8 +24,10 @@ namespace GameEntities
 
         [SerializeField] private EntityClass[] mobsClasses; // Pretty useless in current implementation.
         [SerializeField] private float[] mobsHealth;
+        [SerializeField] private float[] mobsSlow;
         [SerializeField] private float[] mobsSpeed;
         [SerializeField] private float[] attackDamageReceived;
+        [SerializeField] private Bounty[] mobsBounty;
 
         private Stack<int> mobsToDeploy;
 
@@ -35,7 +38,9 @@ namespace GameEntities
             mobsHealth = new float[initialCapacity];
             mobsSpeed = new float[initialCapacity];
             attackDamageReceived = new float[initialCapacity];
+            mobsSlow = new float[initialCapacity];
             mobsRoomStatus = new EntityRoomStatus[initialCapacity];
+            mobsBounty = new Bounty[initialCapacity];
             mobsToDeploy = new Stack<int>();
             currentCapacity = 0;
         }
@@ -58,15 +63,16 @@ namespace GameEntities
             mobsSpeed[newSlot] = speed;
             mobsRoomStatus[newSlot] = EntityRoomStatus.ReadyToSpawn;
             attackDamageReceived[newSlot] = 0;
+            mobsSlow[newSlot] = 1;
             AddMobToDeploy(newSlot);
         }
 
-        public void UpdateMobDamageReceived(int mobIndex, float damage)
+        public void UpdateDamageReceived(int mobIndex, float damage)
         {
             attackDamageReceived[mobIndex] += damage;
         }
 
-        public void UpdateMobSpeed(int mobIndex, float speed)
+        public void UpdateSpeed(int mobIndex, float speed)
         {
             mobsSpeed[mobIndex] = Math.Min(speed, 0.3f); // TODO: Replace magic number with a constant.
         }
@@ -100,6 +106,7 @@ namespace GameEntities
 
                 // INFO: In the future, we might want to keep track of the retiring mobs for animation and have another system to keep track of the animations.
                 mobsRoomStatus[i] = EntityRoomStatus.ReadyToSpawn;
+                mobsSlow[i] = 1;
                 AddMobToDeploy(i);
                 // TODO: Move mob out of the visual area.
             }
@@ -163,47 +170,47 @@ namespace GameEntities
             }
         }
 
-        public void SetMobHealth(int mobIndex, float health)
+        public void SetHealth(int mobIndex, float health)
         {
             mobsHealth[mobIndex] = health;
         }
 
-        public void SetMobRoomStatus(int mobIndex, EntityRoomStatus roomStatus)
+        public void SetRoomStatus(int mobIndex, EntityRoomStatus roomStatus)
         {
             mobsRoomStatus[mobIndex] = roomStatus;
         }
 
-        public void SetMobRoomIndex(int mobIndex, int roomIndex)
+        public void SetRoomIndex(int mobIndex, int roomIndex)
         {
             mobsRoomIndex[mobIndex] = roomIndex;
         }
 
-        public void SetMobSpeed(int mobIndex, float speed)
+        public void SetSpeed(int mobIndex, float speed)
         {
             mobsSpeed[mobIndex] = speed;
         }
 
-        public void SetMobClass(int mobIndex, EntityClass entityClass)
+        public void SetClass(int mobIndex, EntityClass entityClass)
         {
             mobsClasses[mobIndex] = entityClass;
         }
 
-        public int GetMobLocationRoomIndex(int mobIndex)
+        public int GetLocationRoomIndex(int mobIndex)
         {
             return mobsRoomIndex[mobIndex];
         }
 
-        public EntityRoomStatus GetMobRoomStatus(int mobIndex)
+        public EntityRoomStatus GetRoomStatusFor(int mobIndex)
         {
             return mobsRoomStatus[mobIndex];
         }
 
-        public float GetMobHealth(int mobIndex)
+        public float GetHealth(int mobIndex)
         {
             return mobsHealth[mobIndex];
         }
 
-        public float GetMobSpeed(int mobIndex)
+        public float GetSpeed(int mobIndex)
         {
             return mobsSpeed[mobIndex];
         }
@@ -218,7 +225,7 @@ namespace GameEntities
             return mobsToDeploy.Count;
         }
 
-        public bool IsMobDead(int mobIndex)
+        public bool IsDead(int mobIndex)
         {
             return mobsHealth[mobIndex] <= 0;
         }
@@ -241,6 +248,56 @@ namespace GameEntities
         public float[] GetMobsSpeedArray()
         {
             return mobsSpeed;
+        }
+
+        public float[] GetMobsSlowArray()
+        {
+            return mobsSlow;
+        }
+
+        public int[] GetMobsRoomIndexArray()
+        {
+            return mobsRoomIndex;
+        }
+
+        public EntityRoomStatus[] GetMobsRoomStatusArray()
+        {
+            return mobsRoomStatus;
+        }
+
+        public EntityClass[] GetMobsClassArray()
+        {
+            return mobsClasses;
+        }
+
+        public float[] GetMobsDamageReceivedArray()
+        {
+            return attackDamageReceived;
+        }
+
+        public void SetSlow(int mobIndex, float slow)
+        {
+            mobsSlow[mobIndex] = slow;
+        }
+
+        public void ResetSlowFor(int mobIndex)
+        {
+            mobsSlow[mobIndex] = 0;
+        }
+
+        public void SetBounty(int mobIndex, Bounty bounty)
+        {
+            mobsBounty[mobIndex] = bounty;
+        }
+
+        public Bounty GetBounty(int mobIndex)
+        {
+            return mobsBounty[mobIndex];
+        }
+
+        public Bounty[] GetMobsBountyArray()
+        {
+            return mobsBounty;
         }
     }
 }

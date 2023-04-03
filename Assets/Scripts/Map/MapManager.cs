@@ -69,7 +69,6 @@ namespace Map
 
         [SerializeField] private int currentMobsPerWave;
         [SerializeField] private bool wavePrepared;
-        [SerializeField] private List<float> spawnStartPerMob;
         [SerializeField] private Wave waveCreator;
         [SerializeField] private Path path;
 
@@ -86,17 +85,13 @@ namespace Map
         private Dictionary<MobClassType, MobModel> entityClassToModel;
         private JobHandle jobHandle;
 
-        private Dictionary<Mob, int> mobControllerToId;
-
         private int mobGenID;
-        private Dictionary<int, Mob> mobIdToController;
-        private MobsHandlerModule mobsHandlerModule;
+
         private int roomGenID;
         private Dictionary<RoomType, RoomRuneHandler> roomRuneHandlers;
         private Dictionary<RoomType, RoomModel> roomTypeToModels;
 
         private Stopwatch stopwatch;
-
 
         public EconomyController EconomyController => economyController;
 
@@ -109,12 +104,6 @@ namespace Map
             levelsControllers = new List<LevelController>();
             roomsControllers = new List<RoomController>();
 
-            entityRoomStatus = new List<EntityRoomStatus>();
-
-            mobControllerToId = new Dictionary<Mob, int>();
-            mobIdToController = new Dictionary<int, Mob>();
-
-            spawnStartPerMob = new List<float>();
             roomRuneHandlers = new Dictionary<RoomType, RoomRuneHandler>();
 
             currentWaveTimer = 0;
@@ -136,8 +125,6 @@ namespace Map
                 strategy.LoadFromModel(roomModel);
                 roomRuneHandlers.Add(roomModel.roomType, strategy);
             }
-
-            mobsHandlerModule = new MobsHandlerModule();
 
             entityClassToModel = new Dictionary<MobClassType, MobModel>();
             foreach (var entityModel in entityModels.List)
@@ -175,6 +162,7 @@ namespace Map
             {
                 mobsControllerSystem.UpdateMobsNextPosition(
                     mobsSystem.GetMobsSpeedArray(),
+                    mobsSystem.GetMobsSlowArray(),
                     Time.deltaTime
                 );
 
@@ -196,13 +184,13 @@ namespace Map
 
             for (var mobId = 0; mobId < mobsSystem.GetMobCount(); mobId++)
             {
-                switch (mobsSystem.GetMobRoomStatus(mobId))
+                switch (mobsSystem.GetRoomStatusFor(mobId))
                 {
                     case EntityRoomStatus.Entered:
-                        mobsSystem.SetMobRoomStatus(mobId, EntityRoomStatus.Moving);
-                        if (path.NeedToTeleport(mobsControllerSystem.GetMobPosition(mobId), mobsSystem.GetMobLocationRoomIndex(mobId)))
+                        mobsSystem.SetRoomStatus(mobId, EntityRoomStatus.Moving);
+                        if (path.NeedToTeleport(mobsControllerSystem.GetMobPosition(mobId), mobsSystem.GetLocationRoomIndex(mobId)))
                         {
-                            mobsControllerSystem.SetMobPosition(mobId, path.GetEnterPoint(mobsSystem.GetMobLocationRoomIndex(mobId)));
+                            mobsControllerSystem.SetMobPosition(mobId, path.GetEnterPoint(mobsSystem.GetLocationRoomIndex(mobId)));
                         }
                         break;
                     case EntityRoomStatus.Moving:
@@ -210,11 +198,12 @@ namespace Map
                     case EntityRoomStatus.Exiting:
                         if (HasMobPassedTheFinalRoom(mobId))
                         {
-                            mobsSystem.SetMobRoomStatus(mobId, EntityRoomStatus.Retiring);
-                            OnMobReachedFinalRoom?.Invoke(mobIdToController[mobId]);
+                            mobsSystem.SetRoomStatus(mobId, EntityRoomStatus.Retiring);
+                            OnMobReachedFinalRoom?.Invoke(mobsControllerSystem.GetController(mobId));
                         }
                         break;
                     case EntityRoomStatus.Retiring:
+                        MoveMobToStartingPoint(mobId);
                         break;
                     case EntityRoomStatus.ReadyToSpawn:
                         break;
@@ -246,19 +235,18 @@ namespace Map
         }
         private bool TrySpawnMob()
         {
-            if (mobsSystem.ReadyToDeployMobCount() == 0)
+            if (mobsSystem.ReadyToDeployMobCount() == 0 || !waveCreator.HasMobsToSpawn())
                 return false;
 
             var mobData = waveCreator.DequeueMobsToSpawn().First();
             var mobId = mobsSystem.PullMobsToDeploy().First();
 
-            mobIdToController[mobId].bounty = mobData.Bounty;
-            mobIdToController[mobId].speed = mobData.Stats.speed;
-
-            mobsSystem.SetMobRoomIndex(mobId, 0);
-            mobsSystem.SetMobRoomStatus(mobId, EntityRoomStatus.Entered);
-            mobsSystem.SetMobHealth(mobId, mobData.Stats.health);
-            mobsSystem.SetMobSpeed(mobId, mobData.Stats.speed);
+            mobsSystem.SetBounty(mobId, mobData.Bounty);
+            mobsSystem.SetRoomIndex(mobId, 0);
+            mobsSystem.SetRoomStatus(mobId, EntityRoomStatus.Entered);
+            mobsSystem.SetHealth(mobId, mobData.Stats.health);
+            mobsSystem.SetSpeed(mobId, mobData.Stats.speed);
+            mobsSystem.ResetSlowFor(mobId);
 
             return true;
         }
@@ -288,13 +276,7 @@ namespace Map
             ReadjustMobNumbers();
         }
 
-        // public void PrepareNextRound()
-        // {
-        //     wavePrepared = true;
-        //
-        //     ReadjustMobNumbers();
-        // }
-        //
+
         private void ReadjustMobNumbers()
         {
             // If there are fewer mobs to deploy than the number of the wave, we need to add more mobs to the pool.
@@ -419,8 +401,8 @@ namespace Map
             roomsControllers[selectedRoomId].RoomSettings.LoadFromModel(roomTypeToModels[roomType]);
             roomsControllers[selectedRoomId].UpdateVisual(roomTypeToModels[roomType]);
 
-            roomsSystem.SetRoomType(selectedRoomId, roomType);
-            roomsSystem.SetRoomAttackTimeInterval(selectedRoomId, roomTypeToModels[roomType].fireRate);
+            roomsSystem.SetType(selectedRoomId, roomType);
+            roomsSystem.SetAttackTimeInterval(selectedRoomId, roomTypeToModels[roomType].fireRate);
         }
 
         public void TryBuyRoomForSelectedRoom(RoomType roomType)
@@ -459,10 +441,10 @@ namespace Map
             // I wonder if we can put this on a Job.
             for (var mobId = 0; mobId < mobsSystem.GetMobCount(); mobId++)
             {
-                var roomId = mobsSystem.GetMobLocationRoomIndex(mobId);
+                var roomId = mobsSystem.GetLocationRoomIndex(mobId);
                 if (!roomsSystem.CanRoomFire(roomId)) continue;
 
-                var mob = mobIdToController[mobId];
+                var mob = mobsControllerSystem.GetController(mobId);
                 var roomType = roomsSystem.GetRoomType(roomId);
 
                 // Rune Storage.
@@ -470,17 +452,18 @@ namespace Map
                 roomRuneHandlers[roomType].ComputeDamageAndSlowForMobWithRuneStorage(runeStorage, mobId, out var damage, out var slow);
                 roomRuneHandlers[roomType].RemoveRunesFromStorageForEntity(runeStorage, mobId);
 
-                mobsSystem.UpdateMobDamageReceived(mobId, damage);
+                mobsSystem.UpdateDamageReceived(mobId, damage);
+                mobsSystem.SetSlow(mobId, slow);
+
                 roomsSystem.AddRoomToDisarm(roomId);
 
                 // Debug.Log($"Mob {mobId} received {damage} damage and {slow} slow.");
 
                 // Update Mob Controller.
-                mob.AdjustSpeed(mobsSystem.GetMobSpeed(mobId) * (1f - slow));
 
                 if (damage > 0f)
                 {
-                    mob.UpdateHealthBar(mobsSystem.GetMobHealth(mobId) / 100f);
+                    mob.UpdateHealthBar(mobsSystem.GetHealth(mobId) / 100f);
                 }
             }
 
@@ -498,27 +481,9 @@ namespace Map
             }
         }
 
-        private int GetNextRoomForMob(int modId)
-        {
-            return Mathf.Min(mobsSystem.GetMobLocationRoomIndex(modId) + 1, roomsControllers.Count - 1);
-        }
-
-        public void MoveMobToNextRoom(int mobId)
-        {
-            var roomId = GetNextRoomForMob(mobId);
-
-            mobsSystem.SetMobRoomIndex(mobId, roomId);
-            mobsSystem.SetMobRoomStatus(mobId, EntityRoomStatus.Entered);
-        }
-
-        public void SetMobRoomStatus(int mobId, EntityRoomStatus status)
-        {
-            mobsSystem.SetMobRoomStatus(mobId, status);
-        }
-
         private bool HasMobPassedTheFinalRoom(int mobId)
         {
-            return mobsSystem.GetMobLocationRoomIndex(mobId) == roomsControllers.Count - 1;
+            return mobsSystem.GetLocationRoomIndex(mobId) == roomsControllers.Count - 1;
         }
 
         public int SelectedRoomId
@@ -560,30 +525,20 @@ namespace Map
         public void RegisterMob(Mob mob)
         {
             mob.id = GenMobID();
-
-            mobControllerToId.Add(mob, mob.id);
-            mobIdToController.Add(mob.id, mob);
-            spawnStartPerMob.Add(3000f);
-
             mobsSystem.AddMob(0, new SimpleMobClass(), 100, 3f);
             mobsControllerSystem.AddMobController(mob, mobStartingPoint.transform.position);
             // Debug.Log($"Registering mob {mob.id}. Total mobs: {mobsSystem.GetMobCount()}. Total controllers: {mobsControllerSystem.GetMobControllersCount()}.");
         }
 
-        private void MoveMobToStartingPoint(int entityId)
+        private void MoveMobToStartingPoint(int mobId)
         {
-            mobIdToController[entityId].RelocateToPosition(mobStartingPoint.transform.position);
+            mobsControllerSystem.SetMobPosition(mobId, mobStartingPoint.transform.position);
         }
 
-        private void CollectBountyFromMob(int entityId)
+        private void CollectBountyFromMob(int mobId)
         {
-            economyController.AddCurrency(mobIdToController[entityId].bounty.currency, mobIdToController[entityId].bounty.value);
-        }
-
-        private void IncreaseMobStoreCapacity(int capacity = 1000)
-        {
-            mobsSystem.ResizeStorage(capacity);
-            mobsControllerSystem.ResizeStorage(capacity);
+            var bounty = mobsSystem.GetBounty(mobId);
+            economyController.AddCurrency(bounty.currency, bounty.value);
         }
 
         #endregion

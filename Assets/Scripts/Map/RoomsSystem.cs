@@ -62,12 +62,12 @@ namespace Map
             }
         }
 
-        public void SetRoomType(int roomIndex, RoomType roomType)
+        public void SetType(int roomIndex, RoomType roomType)
         {
             roomsType[roomIndex] = roomType;
         }
 
-        public void SetRoomAttackTimeInterval(int roomIndex, float attackTimeInterval)
+        public void SetAttackTimeInterval(int roomIndex, float attackTimeInterval)
         {
             roomsAttackTimeInterval[roomIndex] = attackTimeInterval;
         }
@@ -87,7 +87,7 @@ namespace Map
             return roomsType[roomIndex];
         }
 
-        public float GetRoomAttackTimeInterval(int roomIndex)
+        public float GetAttackTimeInterval(int roomIndex)
         {
             return roomsAttackTimeInterval[roomIndex];
         }

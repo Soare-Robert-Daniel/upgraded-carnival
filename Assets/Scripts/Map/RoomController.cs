@@ -1,5 +1,4 @@
-﻿using GameEntities;
-using Map.Room;
+﻿using Map.Room;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -60,15 +59,6 @@ namespace Map
         }
 
         #region Map Manager Interactions
-
-        private void OnTriggerEnter(Collider other)
-        {
-            var mob = other.gameObject.GetComponent<Mob>();
-            if (mob != null)
-            {
-                mapManager.SetMobRoomStatus(mob.id, EntityRoomStatus.Exiting);
-            }
-        }
 
         #endregion
 

@@ -44,11 +44,11 @@ namespace GameEntities
             mobsCurrentPositions[newSlot] = startingPosition;
         }
 
-        public void UpdateMobsNextPosition(float[] speed, float deltaTime)
+        public void UpdateMobsNextPosition(float[] baseSpeed, float[] slow, float deltaTime)
         {
             for (var i = 0; i < currentCapacity; i++)
             {
-                mobsCurrentPositions[i] += speed[i] * deltaTime * Vector3.right;
+                mobsCurrentPositions[i] += baseSpeed[i] * (1 - slow[i]) * deltaTime * Vector3.right;
             }
         }
 
@@ -151,6 +151,14 @@ namespace GameEntities
                 throw new Exception($"Mob index is out of bounds: {mobIndex} >= {currentCapacity}");
 
             return mobsCurrentPositions[mobIndex];
+        }
+
+        public Mob GetController(int mobIndex)
+        {
+            if (mobIndex >= currentCapacity)
+                throw new Exception($"Mob index is out of bounds: {mobIndex} >= {currentCapacity}");
+
+            return mobsController[mobIndex];
         }
 
         #region Job System - Test
