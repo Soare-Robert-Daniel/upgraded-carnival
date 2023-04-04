@@ -117,6 +117,7 @@ namespace GameEntities
             for (var i = 0; i < currentCapacity; i++)
             {
                 if (mobsRoomStatus[i] != EntityRoomStatus.Exiting) continue;
+
                 mobsRoomStatus[i] = EntityRoomStatus.Entered;
                 if (mobsRoomIndex[i] + 1 >= roomsNumber)
                 {
@@ -131,17 +132,16 @@ namespace GameEntities
         {
             for (var i = 0; i < currentCapacity; i++)
             {
-                if (mobsRoomStatus[i] == EntityRoomStatus.Exiting)
-                {
-                    if (!path.IsInRoom(mobsCurrentPosition[i], mobsRoomIndex[i]) &&
-                        path.FindRoomIndex(mobsCurrentPosition[i], mobsRoomIndex[i]) != Path.NoRoomFound)
-                    {
-                        mobsRoomStatus[i] = EntityRoomStatus.Entered;
-                    }
-                }
 
                 if (mobsRoomStatus[i] != EntityRoomStatus.Moving) continue;
-                if (!path.IsInRoom(mobsCurrentPosition[i], mobsRoomIndex[i]))
+
+                if (
+                    !path.IsInRoom(mobsCurrentPosition[i], mobsRoomIndex[i]) &&
+                    (
+                        path.FindRoomIndex(mobsCurrentPosition[i], mobsRoomIndex[i] + 1) != Path.NoRoomFound ||
+                        path.NeedToTeleport(mobsCurrentPosition[i], mobsRoomIndex[i] + 1)
+                    )
+                )
                 {
                     mobsRoomStatus[i] = EntityRoomStatus.Exiting;
                 }

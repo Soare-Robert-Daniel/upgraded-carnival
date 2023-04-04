@@ -509,7 +509,6 @@ MonoBehaviour:
   offset: {x: 0, y: 18, z: 0}
   levelsControllers: []
   roomsControllers: []
-  entityRoomStatus: 
   startingLevelsNum: 3
   mobTemplate: {fileID: 3078138613014809113, guid: bf62d0815a7c1a049a12b9166531684b, type: 3}
   levelTemplate: {fileID: 2811519476003989976, guid: 5d183f5f1909c2e489f21ef96f60a7e9, type: 3}
@@ -519,16 +518,16 @@ MonoBehaviour:
   roomModels: {fileID: 11400000, guid: 33ecc9ef6472f0f41856614df23ecb08, type: 2}
   entityModels: {fileID: 11400000, guid: e988f3d56fc413b41af5158aec7343cd, type: 2}
   waveMobNumberPerWaveModel: {fileID: 11400000, guid: c6b54adc922de61488db41bdd5f9e827, type: 2}
+  selectedRoomId: 0
   currentWaveTimer: 0
   currentSpawnTimer: 0
   currentMobsPerWave: 3
   wavePrepared: 0
-  spawnStartPerMob: []
   path:
     enterPoints: []
     exitPoints: []
     currentCapacity: 0
-    heightDistanceThreshold: 0.1
+    heightDistanceThreshold: 3
   runeStorage:
     resizingCapacity: 0
     mobsIds: 
@@ -541,8 +540,10 @@ MonoBehaviour:
     mobsRoomStatus: 
     mobsClasses: []
     mobsHealth: []
+    mobsSlow: []
     mobsSpeed: []
     attackDamageReceived: []
+    mobsBounty: []
   roomsSystem:
     currentCapacity: 0
     roomsCanFire: 
@@ -550,13 +551,13 @@ MonoBehaviour:
     roomsAttackTimeInterval: []
     roomsType: 
   mobsControllerSystem:
+    minimumSpeedPercentage: 0.2
     currentCapacity: 0
     mobsController: []
     mobsCurrentPositions: []
   uiState:
     isOverHUD: 0
     lockSelection: 0
-  selectedRoomId: 0
 --- !u!114 &414924789
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -12,9 +12,15 @@ namespace GameEntities
     [Serializable]
     public class MobsControllerSystem
     {
+        [Header("Settings")]
+        [Tooltip("Minimum speed percentage a mob can have after applying slow.")]
+        [SerializeField] private float minimumSpeedPercentage = 0.2f;
+
+        [Header("Internals")]
         [SerializeField] private int currentCapacity;
+
         [SerializeField] private Mob[] mobsController;
-        [SerializeField] private Vector3[] mobsCurrentPositions;
+        [SerializeField] private Vector3[] mobsCurrentPositions; // [Investigate] I think this can live inside a NativeArray.
 
         private NativeArray<Vector3> mobsCurrentPositionsNativeArray;
 
@@ -48,14 +54,15 @@ namespace GameEntities
         {
             for (var i = 0; i < currentCapacity; i++)
             {
-                mobsCurrentPositions[i] += baseSpeed[i] * (1 - slow[i]) * deltaTime * Vector3.right;
+                mobsCurrentPositions[i] += baseSpeed[i] * Mathf.Max(1 - slow[i], minimumSpeedPercentage) * deltaTime * Vector3.right;
             }
         }
 
         public void UpdateMobControllersHealth(float[] health)
         {
             if (currentCapacity != health.Length)
-                throw new Exception($"Mob indexes array length does not match health array length: {currentCapacity} != {health.Length}");
+                throw new Exception(
+                    $"[MobsControllerSystem] Mob indexes array length does not match health array length: {currentCapacity} != {health.Length}");
 
             for (var i = 0; i < currentCapacity; i++)
             {
@@ -66,7 +73,7 @@ namespace GameEntities
         public void UpdateMobControllerHealth(int mobIndex, float health)
         {
             if (mobIndex >= currentCapacity)
-                throw new Exception($"Mob index is out of bounds: {mobIndex} >= {currentCapacity}");
+                throw new Exception($"[MobsControllerSystem] Mob index is out of bounds: {mobIndex} >= {currentCapacity}");
 
             mobsController[mobIndex].UpdateHealthBar(health / 100f); // TODO: Refactor magic number
         }
@@ -82,7 +89,8 @@ namespace GameEntities
         public void UpdateMobControllersPositions(Vector3[] positions)
         {
             if (positions.Length != currentCapacity)
-                throw new Exception($"Positions array length does not match current capacity: {positions.Length} != {currentCapacity}");
+                throw new Exception(
+                    $"[MobsControllerSystem] Positions array length does not match current capacity: {positions.Length} != {currentCapacity}");
 
             for (var i = 0; i < currentCapacity; i++)
             {
@@ -94,7 +102,7 @@ namespace GameEntities
         {
             if (mobsCurrentPositions.Length < currentCapacity)
                 throw new Exception(
-                    $"Positions array length is lower than current mobs capacity: {mobsCurrentPositions.Length} < {currentCapacity}");
+                    $"[MobsControllerSystem] Positions array length is lower than current mobs capacity: {mobsCurrentPositions.Length} < {currentCapacity}");
 
             for (var i = 0; i < currentCapacity; i++)
             {
@@ -116,7 +124,7 @@ namespace GameEntities
         public void SetMobPosition(int mobIndex, Vector3 position)
         {
             if (mobIndex >= currentCapacity)
-                throw new Exception($"Mob index is out of bounds: {mobIndex} >= {currentCapacity}");
+                throw new Exception($"[MobsControllerSystem] Mob index is out of bounds: {mobIndex} >= {currentCapacity}");
 
             mobsCurrentPositions[mobIndex] = position;
         }
@@ -124,7 +132,7 @@ namespace GameEntities
         public void UpdateMobPositionController(int mobIndex, Vector3 position)
         {
             if (mobIndex >= currentCapacity)
-                throw new Exception($"Mob index is out of bounds: {mobIndex} >= {currentCapacity}");
+                throw new Exception($"[MobsControllerSystem] Mob index is out of bounds: {mobIndex} >= {currentCapacity}");
 
             mobsController[mobIndex].transform.position = position;
         }
@@ -148,7 +156,7 @@ namespace GameEntities
         public Vector3 GetMobPosition(int mobIndex)
         {
             if (mobIndex >= currentCapacity)
-                throw new Exception($"Mob index is out of bounds: {mobIndex} >= {currentCapacity}");
+                throw new Exception($"[MobsControllerSystem] Mob index is out of bounds: {mobIndex} >= {currentCapacity}");
 
             return mobsCurrentPositions[mobIndex];
         }
@@ -156,7 +164,7 @@ namespace GameEntities
         public Mob GetController(int mobIndex)
         {
             if (mobIndex >= currentCapacity)
-                throw new Exception($"Mob index is out of bounds: {mobIndex} >= {currentCapacity}");
+                throw new Exception($"[MobsControllerSystem] Mob index is out of bounds: {mobIndex} >= {currentCapacity}");
 
             return mobsController[mobIndex];
         }

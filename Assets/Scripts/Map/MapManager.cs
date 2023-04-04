@@ -44,9 +44,6 @@ namespace Map
         [Header("Rooms")]
         [SerializeField] private List<RoomController> roomsControllers;
 
-        [SerializeField] private List<EntityRoomStatus> entityRoomStatus;
-
-
         [Header("Resources")]
         [SerializeField] private int startingLevelsNum;
 
@@ -63,6 +60,8 @@ namespace Map
         [SerializeField] private WaveMobNumberPerWaveModel waveMobNumberPerWaveModel;
 
         [Header("Internals")]
+        [SerializeField] private int selectedRoomId;
+
         [SerializeField] private float currentWaveTimer;
 
         [SerializeField] private float currentSpawnTimer;
@@ -80,13 +79,10 @@ namespace Map
         [SerializeField] private MobsControllerSystem mobsControllerSystem;
 
         public UIState uiState;
-
-        [SerializeField] private int selectedRoomId;
         private Dictionary<MobClassType, MobModel> entityClassToModel;
         private JobHandle jobHandle;
 
         private int mobGenID;
-
         private int roomGenID;
         private Dictionary<RoomType, RoomRuneHandler> roomRuneHandlers;
         private Dictionary<RoomType, RoomModel> roomTypeToModels;
@@ -114,7 +110,10 @@ namespace Map
             roomsSystem = new RoomsSystem(100);
             mobsSystem = new MobsSystem(100);
             mobsControllerSystem = new MobsControllerSystem(100);
-            path = new Path(100);
+            path = new Path(100)
+            {
+                HeightDistanceThreshold = 1f
+            };
 
             roomTypeToModels = new Dictionary<RoomType, RoomModel>();
             foreach (var roomModel in roomModels.list)
@@ -472,11 +471,12 @@ namespace Map
 
         private void CollectBountyFromMobs()
         {
-            for (var entityId = 0; entityId < entityRoomStatus.Count; entityId++)
+            var entityRoomStatus = mobsSystem.GetMobsRoomStatusArray();
+            for (var mobId = 0; mobId < entityRoomStatus.Length; mobId++)
             {
-                if (entityRoomStatus[entityId] == EntityRoomStatus.Retiring)
+                if (entityRoomStatus[mobId] == EntityRoomStatus.Retiring)
                 {
-                    CollectBountyFromMob(entityId);
+                    CollectBountyFromMob(mobId);
                 }
             }
         }

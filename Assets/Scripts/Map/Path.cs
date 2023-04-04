@@ -22,6 +22,8 @@ namespace Map
 
         public int CurrentCapacity => currentCapacity;
 
+        public float HeightDistanceThreshold { get; set; }
+
         public void AddPath(Vector3 enterPoint, Vector3 exitPoint)
         {
             var newSlot = currentCapacity;
@@ -40,7 +42,7 @@ namespace Map
 
         public bool NeedToTeleport(Vector3 position, int roomIndex)
         {
-            return Mathf.Abs(position.y - enterPoints[roomIndex].y) >= heightDistanceThreshold;
+            return Mathf.Abs(position.y - enterPoints[roomIndex].y) >= HeightDistanceThreshold;
         }
 
         public bool IsInRoom(Vector3 position, int roomIndex)
@@ -48,7 +50,7 @@ namespace Map
             var enterPoint = enterPoints[roomIndex];
             var exitPoint = exitPoints[roomIndex];
 
-            return position.x >= enterPoint.x && position.x <= exitPoint.x && Mathf.Abs(position.y - enterPoint.y) <= heightDistanceThreshold;
+            return position.x >= enterPoint.x && position.x <= exitPoint.x && !NeedToTeleport(position, roomIndex);
         }
 
         public int FindRoomIndex(Vector3 position, int offset = 0)
