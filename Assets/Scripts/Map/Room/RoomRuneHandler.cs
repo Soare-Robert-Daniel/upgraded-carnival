@@ -47,7 +47,7 @@ namespace Map.Room
             }
         }
 
-        public void AddRunesToStorageForEntity(RuneStorage runeStorage, int entityId)
+        public void AddRunesToStorageBufferForEntity(RuneStorage runeStorage, int entityId)
         {
             for (var i = 0; i < runeTypeToAdd.Length; i++)
             {

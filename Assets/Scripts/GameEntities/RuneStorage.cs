@@ -47,6 +47,7 @@ namespace GameEntities
 
         public void AddRune(int mobId, RuneType runeType, float runeDuration)
         {
+            // Counting runes for each mob.
             if (mobsRunes.ContainsKey(mobId))
             {
                 mobsRunes[mobId][runeType] += 1;

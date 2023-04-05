@@ -112,51 +112,6 @@ namespace GameEntities
             }
         }
 
-        public void MoveMobsToNextRooms(int roomsNumber)
-        {
-            for (var i = 0; i < currentCapacity; i++)
-            {
-                if (mobsRoomStatus[i] != EntityRoomStatus.Exiting) continue;
-
-                mobsRoomStatus[i] = EntityRoomStatus.Entered;
-                if (mobsRoomIndex[i] + 1 >= roomsNumber)
-                {
-                    mobsRoomStatus[i] = EntityRoomStatus.Retiring;
-
-                }
-                mobsRoomIndex[i] = Math.Clamp(mobsRoomIndex[i] + 1, 0, roomsNumber - 1);
-            }
-        }
-
-        public void UpdateMobsRoomStatus(Vector3[] mobsCurrentPosition, Path path)
-        {
-            for (var i = 0; i < currentCapacity; i++)
-            {
-
-                if (mobsRoomStatus[i] != EntityRoomStatus.Moving) continue;
-
-                if (
-                    !path.IsInRoom(mobsCurrentPosition[i], mobsRoomIndex[i]) &&
-                    (
-                        path.FindRoomIndex(mobsCurrentPosition[i], mobsRoomIndex[i] + 1) != Path.NoRoomFound ||
-                        path.NeedToTeleport(mobsCurrentPosition[i], mobsRoomIndex[i] + 1)
-                    )
-                )
-                {
-                    mobsRoomStatus[i] = EntityRoomStatus.Exiting;
-                }
-            }
-
-        }
-
-        public bool CanMoveMobToNextRoom(Vector3 currentPosition, Vector3 currentRoomExitPosition)
-        {
-            // INFO: This is a very simple implementation. We might want to improve it in the future.
-            // Debug.Log(
-            //     $"Mob: {currentCapacity} | Exit: {currentRoomExitPosition} | {Vector2.SqrMagnitude(currentRoomExitPosition - currentPosition)} < {moveToNextRoomThreshold} ");
-            return Vector2.SqrMagnitude(currentRoomExitPosition - currentPosition) < moveToNextRoomThreshold;
-        }
-
         public void AddMobToDeploy(int mobIndex)
         {
             mobsToDeploy.Push(mobIndex);

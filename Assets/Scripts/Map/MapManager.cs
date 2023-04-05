@@ -179,46 +179,12 @@ namespace Map
                 }
             }
 
-            mobsSystem.UpdateMobsRoomStatus(mobsControllerSystem.GetMobControllersPositionsArray(), path);
-
-            for (var mobId = 0; mobId < mobsSystem.GetMobCount(); mobId++)
-            {
-                switch (mobsSystem.GetRoomStatusFor(mobId))
-                {
-                    case EntityRoomStatus.Entered:
-                        mobsSystem.SetRoomStatus(mobId, EntityRoomStatus.Moving);
-                        if (path.NeedToTeleport(mobsControllerSystem.GetMobPosition(mobId), mobsSystem.GetLocationRoomIndex(mobId)))
-                        {
-                            mobsControllerSystem.SetMobPosition(mobId, path.GetEnterPoint(mobsSystem.GetLocationRoomIndex(mobId)));
-                        }
-                        break;
-                    case EntityRoomStatus.Moving:
-                        break;
-                    case EntityRoomStatus.Exiting:
-                        if (HasMobPassedTheFinalRoom(mobId))
-                        {
-                            mobsSystem.SetRoomStatus(mobId, EntityRoomStatus.Retiring);
-                            OnMobReachedFinalRoom?.Invoke(mobsControllerSystem.GetController(mobId));
-                        }
-                        break;
-                    case EntityRoomStatus.Retiring:
-                        MoveMobToStartingPoint(mobId);
-                        break;
-                    case EntityRoomStatus.ReadyToSpawn:
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-            }
-
-            mobsSystem.MoveMobsToNextRooms(roomsControllers.Count);
+            UpdateMobs();
 
             roomsSystem.UpdateRoomsAttackTime(Time.deltaTime);
             runeStorage.UpdateRunesDurations(Time.deltaTime);
-            HandleRuneAndDamagePerMob();
-            runeStorage.TransferBufferToStorage();
 
-            CollectBountyFromMobs();
+            HandleRuneAndDamagePerMob();
 
             mobsSystem.MoveRetiringMobsToDeploy();
             roomsSystem.DisarmRooms();
@@ -231,6 +197,62 @@ namespace Map
             stopwatch.Stop();
 
             OnMapLogicTimeChanged?.Invoke(stopwatch.ElapsedMilliseconds);
+        }
+
+        public void UpdateMobs()
+        {
+            var mobsRoomStatus = mobsSystem.GetMobsRoomStatusArray();
+            var mobsPositions = mobsControllerSystem.GetMobControllersPositionsArray();
+            var mobsRoomIndex = mobsSystem.GetMobsRoomIndexArray();
+
+            for (var mobId = 0; mobId < mobsSystem.GetMobCount(); mobId++)
+            {
+                var currentStatus = mobsRoomStatus[mobId];
+
+                if (currentStatus == EntityRoomStatus.Entered)
+                {
+                    mobsSystem.SetRoomStatus(mobId, EntityRoomStatus.Moving);
+                    if (path.NeedToTeleport(mobsControllerSystem.GetMobPosition(mobId), mobsSystem.GetLocationRoomIndex(mobId)))
+                    {
+                        mobsControllerSystem.SetMobPosition(mobId, path.GetEnterPoint(mobsSystem.GetLocationRoomIndex(mobId)));
+                    }
+                }
+                else if (currentStatus == EntityRoomStatus.Exiting)
+                {
+                    if (HasMobPassedTheFinalRoom(mobId))
+                    {
+                        mobsSystem.SetRoomStatus(mobId, EntityRoomStatus.Retiring);
+                        OnMobReachedFinalRoom?.Invoke(mobsControllerSystem.GetController(mobId));
+                    }
+
+                    mobsRoomStatus[mobId] = EntityRoomStatus.Entered;
+                    if (mobsRoomIndex[mobId] + 1 >= roomsControllers.Count)
+                    {
+                        mobsRoomStatus[mobId] = EntityRoomStatus.Retiring;
+
+                    }
+                    mobsRoomIndex[mobId] = Math.Clamp(mobsRoomIndex[mobId] + 1, 0, roomsControllers.Count - 1);
+                }
+                else if (currentStatus == EntityRoomStatus.Retiring)
+                {
+                    MoveMobToStartingPoint(mobId);
+                    CollectBountyFromMob(mobId);
+                }
+                else if (currentStatus == EntityRoomStatus.Moving)
+                {
+                    if (
+                        !path.IsInRoom(mobsPositions[mobId], mobsRoomIndex[mobId]) &&
+                        (
+                            path.FindRoomIndex(mobsPositions[mobId], mobsRoomIndex[mobId] + 1) != Path.NoRoomFound ||
+                            path.NeedToTeleport(mobsPositions[mobId], mobsRoomIndex[mobId] + 1)
+                        )
+                    )
+                    {
+                        mobsSystem.SetRoomStatus(mobId, EntityRoomStatus.Exiting);
+                    }
+                }
+
+            }
         }
         private bool TrySpawnMob()
         {
@@ -447,7 +469,7 @@ namespace Map
                 var roomType = roomsSystem.GetRoomType(roomId);
 
                 // Rune Storage.
-                roomRuneHandlers[roomType].AddRunesToStorageForEntity(runeStorage, mobId);
+                roomRuneHandlers[roomType].AddRunesToStorageBufferForEntity(runeStorage, mobId);
                 roomRuneHandlers[roomType].ComputeDamageAndSlowForMobWithRuneStorage(runeStorage, mobId, out var damage, out var slow);
                 roomRuneHandlers[roomType].RemoveRunesFromStorageForEntity(runeStorage, mobId);
 
@@ -467,23 +489,12 @@ namespace Map
             }
 
             mobsSystem.ApplyDamageReceivedToMobs();
-        }
-
-        private void CollectBountyFromMobs()
-        {
-            var entityRoomStatus = mobsSystem.GetMobsRoomStatusArray();
-            for (var mobId = 0; mobId < entityRoomStatus.Length; mobId++)
-            {
-                if (entityRoomStatus[mobId] == EntityRoomStatus.Retiring)
-                {
-                    CollectBountyFromMob(mobId);
-                }
-            }
+            runeStorage.TransferBufferToStorage();
         }
 
         private bool HasMobPassedTheFinalRoom(int mobId)
         {
-            return mobsSystem.GetLocationRoomIndex(mobId) == roomsControllers.Count - 1;
+            return mobsSystem.GetLocationRoomIndex(mobId) == roomsSystem.FinalRoom;
         }
 
         public int SelectedRoomId
