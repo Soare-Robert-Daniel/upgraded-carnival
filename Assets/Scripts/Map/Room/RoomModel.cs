@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using GameEntities;
+using Runes;
 using UnityEngine;
 
 namespace Map.Room
@@ -9,17 +10,29 @@ namespace Map.Room
     {
         Keep,
         Add,
+        Consume,
         Remove
     }
+
 
     [Serializable]
     public class RoomsRuneWrapper
     {
+
         public RuneType type;
+        public RuneValue value;
         public float damage;
         public float slow;
         public float duration;
         public RoomRuneHandlingType actionType;
+        public List<RuneCondition> runesConditions;
+
+        [Serializable]
+        public struct RuneCondition
+        {
+            public RuneType runeType;
+            public int count;
+        }
     }
 
     [CreateAssetMenu(fileName = "Room Model", menuName = "Rooms/Create Room Model", order = 0)]

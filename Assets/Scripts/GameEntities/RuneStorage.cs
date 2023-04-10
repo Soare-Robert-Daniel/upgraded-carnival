@@ -1,9 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace GameEntities
 {
+    public struct RuneToken
+    {
+        public int mobId;
+        public RuneType runeType;
+        public float duration;
+        public float value;
+
+        public RuneToken(int mobId, RuneType runeType, float duration, float value)
+        {
+            this.mobId = mobId;
+            this.runeType = runeType;
+            this.duration = duration;
+            this.value = value;
+        }
+
+    }
 
     [Serializable]
     public class RuneStorage
@@ -13,12 +30,13 @@ namespace GameEntities
         [SerializeField] private int[] mobsIds;
         [SerializeField] private RuneType[] runesTypes;
         [SerializeField] private float[] runesDuration; // Update this value every frame.
+        [SerializeField] private List<RuneData> runesToBeAdded;
 
         private int EMPTY_SLOT = -1;
         private Stack<int> emptySlots;
 
-        private Dictionary<int, Dictionary<RuneType, int>> mobsRunes; // Read every frame.
-        [SerializeField] private List<RuneData> runesToBeAdded;
+        private Dictionary<int, Dictionary<RuneType, int>> mobsRunesCount; // Read every frame.
+        private Dictionary<int, List<int>> mobsRunesSlots; // Read every frame.
 
         public RuneStorage(int initialCapacity = 0)
         {
@@ -26,8 +44,9 @@ namespace GameEntities
             runesTypes = new RuneType[initialCapacity];
             runesDuration = new float[initialCapacity];
             emptySlots = new Stack<int>();
-            mobsRunes = new Dictionary<int, Dictionary<RuneType, int>>();
+            mobsRunesCount = new Dictionary<int, Dictionary<RuneType, int>>();
             runesToBeAdded = new List<RuneData>();
+            mobsRunesSlots = new Dictionary<int, List<int>>();
             resizingCapacity = 1;
 
             for (var i = 0; i < initialCapacity; i++)
@@ -48,22 +67,22 @@ namespace GameEntities
         public void AddRune(int mobId, RuneType runeType, float runeDuration)
         {
             // Counting runes for each mob.
-            if (mobsRunes.ContainsKey(mobId))
+            if (mobsRunesCount.ContainsKey(mobId))
             {
-                mobsRunes[mobId][runeType] += 1;
+                if (mobsRunesCount[mobId].ContainsKey(runeType))
+                {
+                    mobsRunesCount[mobId][runeType] += 1;
+                }
+                else
+                {
+                    mobsRunesCount[mobId].Add(runeType, 1);
+                }
             }
             else
             {
-                mobsRunes.Add(mobId, new Dictionary<RuneType, int>());
-
-                foreach (var rune in Enum.GetValues(typeof(RuneType)))
-                {
-                    mobsRunes[mobId].Add((RuneType)rune, 0);
-                }
-
-                mobsRunes[mobId][runeType] = 1;
+                mobsRunesCount.Add(mobId, new Dictionary<RuneType, int>());
+                mobsRunesCount[mobId].Add(runeType, 1);
             }
-
 
             runesToBeAdded.Add(new RuneData
             {
@@ -89,13 +108,19 @@ namespace GameEntities
                 ScanStorage();
             }
 
-            foreach (var runeData in runesToBeAdded)
+            foreach (var runeData in runesToBeAdded.TakeWhile(runeData => emptySlots.Count != 0))
             {
                 var slot = emptySlots.Pop();
                 mobsIds[slot] = runeData.mobId;
                 runesTypes[slot] = runeData.runeType;
                 runesDuration[slot] = runeData.runeDuration;
             }
+
+            if (runesToBeAdded.Count > 0)
+            {
+                Debug.LogError($"RuneStorage: Not enough empty slots. There are {runesToBeAdded.Count} runes that couldn't be added.");
+            }
+
             runesToBeAdded.Clear();
         }
 
@@ -125,7 +150,7 @@ namespace GameEntities
                 if (!Array.Exists(runeTypes, runeType => runeType == runesTypes[i])) continue;
 
                 mobsIds[i] = EMPTY_SLOT;
-                mobsRunes[mobId][runesTypes[i]] = Math.Min(0, mobsRunes[mobId][runesTypes[i]] - 1);
+                mobsRunesCount[mobId][runesTypes[i]] = Math.Min(0, mobsRunesCount[mobId][runesTypes[i]] - 1);
                 emptySlots.Push(i);
             }
         }
@@ -164,13 +189,14 @@ namespace GameEntities
 
         public Dictionary<RuneType, int> GetRuneCountForEntity(int mobId)
         {
-            if (!mobsRunes.ContainsKey(mobId))
+            if (!mobsRunesCount.ContainsKey(mobId))
             {
-                mobsRunes.Add(mobId, new Dictionary<RuneType, int>());
+                mobsRunesCount.Add(mobId, new Dictionary<RuneType, int>());
             }
-            return mobsRunes[mobId];
+            return mobsRunesCount[mobId];
         }
 
+        [Serializable]
         public struct RuneData
         {
             public int mobId;

@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using Map.Room;
+using Runes;
 using UnityEngine;
 
 namespace Map
@@ -12,6 +14,7 @@ namespace Map
         [SerializeField] private float[] roomsCurrentAttackTime;
         [SerializeField] private float[] roomsAttackTimeInterval;
         [SerializeField] private RoomType[] roomsType;
+        [SerializeField] private List<RunesHandlerForRoom> roomsRunesHandlers;
         private bool[] roomsToDisarm;
 
         public RoomsSystem(int initialCapacity = 0)
@@ -21,6 +24,7 @@ namespace Map
             roomsAttackTimeInterval = new float[initialCapacity];
             roomsType = new RoomType[initialCapacity];
             roomsToDisarm = new bool[initialCapacity];
+            roomsRunesHandlers = new List<RunesHandlerForRoom>();
 
             currentCapacity = 0;
         }
@@ -29,7 +33,7 @@ namespace Map
 
         public int FinalRoom => currentCapacity - 1;
 
-        public void AddRoom(RoomType roomType, float attackTimeInterval, Vector3 startRoomPosition, Vector3 exitRoomPosition)
+        public int AddRoom(RoomType roomType, float attackTimeInterval, Vector3 startRoomPosition, Vector3 exitRoomPosition)
         {
             var newSlot = currentCapacity;
             if (currentCapacity >= roomsCanFire.Length)
@@ -45,6 +49,9 @@ namespace Map
             roomsCurrentAttackTime[newSlot] = 0;
             roomsAttackTimeInterval[newSlot] = attackTimeInterval;
             roomsType[newSlot] = roomType;
+            roomsRunesHandlers.Add(new RunesHandlerForRoom());
+
+            return newSlot;
         }
 
         public void UpdateRoomsAttackTime(float deltaTime)
@@ -105,6 +112,16 @@ namespace Map
                 roomsCanFire[i] = false;
                 roomsToDisarm[i] = false;
             }
+        }
+
+        public void ChangeRuneHandler(int roomIndex, RunesHandlerForRoom runesHandler)
+        {
+            roomsRunesHandlers[roomIndex] = runesHandler;
+        }
+
+        public RunesHandlerForRoom GetRunesHandler(int roomIndex)
+        {
+            return roomsRunesHandlers[roomIndex];
         }
 
         public void ResizeStorage(int newCapacity)

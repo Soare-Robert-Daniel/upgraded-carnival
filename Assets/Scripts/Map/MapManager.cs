@@ -7,6 +7,7 @@ using Economy;
 using GameEntities;
 using Map.Components;
 using Map.Room;
+using Runes;
 using UI;
 using Unity.Jobs;
 using UnityEngine;
@@ -45,6 +46,8 @@ namespace Map
         [SerializeField] private List<RoomController> roomsControllers;
 
         [Header("Resources")]
+        [SerializeField] private float databaseCleanUpInterval;
+
         [SerializeField] private int startingLevelsNum;
 
         [SerializeField] private GameObject mobTemplate;
@@ -66,10 +69,13 @@ namespace Map
 
         [SerializeField] private float currentSpawnTimer;
 
+        [SerializeField] private float runeDatabaseCleanUpTimer;
+
         [SerializeField] private int currentMobsPerWave;
         [SerializeField] private bool wavePrepared;
         [SerializeField] private Wave waveCreator;
         [SerializeField] private Path path;
+        [SerializeField] private RuneDatabase runeDatabase;
 
         [Header("Systems")]
         [SerializeField] private RuneStorage runeStorage;
@@ -105,6 +111,7 @@ namespace Map
             currentWaveTimer = 0;
             currentSpawnTimer = 0;
             wavePrepared = false;
+            currentMobsPerWave = 0;
 
             runeStorage = new RuneStorage(1000);
             roomsSystem = new RoomsSystem(100);
@@ -132,6 +139,7 @@ namespace Map
             }
 
             waveCreator = new Wave(waveMobNumberPerWaveModel, entityClassToModel);
+            runeDatabase = new RuneDatabase();
 
             CreateLayout(startingLevelsNum);
 
@@ -153,6 +161,7 @@ namespace Map
                 currentSpawnTimer += Time.deltaTime;
                 OnNextWaveTimeChanged?.Invoke(waveTimeInterval - currentWaveTimer);
             }
+            databaseCleanUpInterval += Time.deltaTime;
 
             stopwatch.Reset();
             stopwatch.Start();
@@ -197,6 +206,12 @@ namespace Map
             stopwatch.Stop();
 
             OnMapLogicTimeChanged?.Invoke(stopwatch.ElapsedMilliseconds);
+
+            if (databaseCleanUpInterval > 1f)
+            {
+                runeDatabase.ManualCleanup();
+                databaseCleanUpInterval = 0;
+            }
         }
 
         public void UpdateMobs()
@@ -398,7 +413,10 @@ namespace Map
             room.ID = GenRoomID();
             room.MapManager = this;
 
-            roomsSystem.AddRoom(RoomType.Empty, 0, room.StartingPointPosition, room.ExitPointPosition);
+            var roomId = roomsSystem.AddRoom(RoomType.Empty, 0, room.StartingPointPosition, room.ExitPointPosition);
+
+            roomsSystem.ChangeRuneHandler(roomId, new RunesHandlerForRoom(roomTypeToModels[RoomType.Empty]));
+
             path.AddPath(room.StartingPointPosition, room.ExitPointPosition);
 
             roomsControllers.Add(room);
@@ -424,6 +442,7 @@ namespace Map
 
             roomsSystem.SetType(selectedRoomId, roomType);
             roomsSystem.SetAttackTimeInterval(selectedRoomId, roomTypeToModels[roomType].fireRate);
+            roomsSystem.ChangeRuneHandler(selectedRoomId, new RunesHandlerForRoom(roomTypeToModels[roomType]));
         }
 
         public void TryBuyRoomForSelectedRoom(RoomType roomType)
@@ -472,6 +491,7 @@ namespace Map
                 roomRuneHandlers[roomType].AddRunesToStorageBufferForEntity(runeStorage, mobId);
                 roomRuneHandlers[roomType].ComputeDamageAndSlowForMobWithRuneStorage(runeStorage, mobId, out var damage, out var slow);
                 roomRuneHandlers[roomType].RemoveRunesFromStorageForEntity(runeStorage, mobId);
+                roomsSystem.GetRunesHandler(roomId).UpdateDatabase(runeDatabase, roomId, mobId);
 
                 mobsSystem.UpdateDamageReceived(mobId, damage);
                 mobsSystem.SetSlow(mobId, slow);

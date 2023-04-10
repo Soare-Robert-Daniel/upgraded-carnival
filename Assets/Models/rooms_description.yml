@@ -1,0 +1,19 @@
+﻿version: 1
+runesDescription:
+  - type: "attackRuneRoom"
+    name: "Attack Rune"
+    labelId: 1
+    description: "Add an attack rune to mob."
+    actions:
+      - type: "addRune"
+        runeType: "attackRune"
+        value: 10
+  - type: "constantAttackRoom"
+    name: "Constant Attack"
+    labelId: 2
+    description: "Attack the mob. Scale the damage with the number of runes."
+    actions:
+      - type: "addRune"
+        runeType: "constantAttack"
+        value: 10    
+        
