@@ -6,5 +6,7 @@ namespace Map
     public class LevelController : MonoBehaviour
     {
         public List<RoomController> roomsControllers;
+        public Transform northBound;
+        public Transform southBound;
     }
 }

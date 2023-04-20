@@ -15,7 +15,7 @@ MonoBehaviour:
   stats:
     mobClass: 10
     health: 100
-    speed: 10
+    speed: 0
   bounty:
     currency: 0
     value: 30

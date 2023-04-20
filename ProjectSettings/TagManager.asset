@@ -6,6 +6,7 @@ TagManager:
   tags:
   - ExitRoom
   - RoomOverlay
+  - Mob
   layers:
   - Default
   - TransparentFX

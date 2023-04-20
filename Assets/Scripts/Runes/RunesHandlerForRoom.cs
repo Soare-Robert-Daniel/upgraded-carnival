@@ -10,6 +10,7 @@ namespace Runes
     [Serializable]
     public class RunesHandlerForRoom
     {
+
         [SerializeField] private RuneTokensBuilder runeTokensBuilder;
         public List<RoomsRuneWrapper> runesActions;
         private Dictionary<RuneType, Dictionary<RuneType, int>> runesConditions;
@@ -44,13 +45,15 @@ namespace Runes
             // Eliminate expired tokens.
             Debug.Log("Current time: " + Time.time + "s");
             Debug.Log("Room id: " + roomId + " Mob id: " + mobId);
-            var runeTokens = runeDatabase.data.Where(runeToken => runeToken.mobId == mobId).ToList();
+            var hasTokens = runeDatabase.mobsRunesCollection.TryGetValue(mobId, out var runeTokens);
+            if (!hasTokens) return;
+
             Debug.Log("Rune tokens count: " + runeTokens.Count);
-            foreach (var runeToken in runeTokens.Where(runeToken => runeToken.timestamp + runeToken.duration < Time.time))
-            {
-                Debug.Log("Rune expired: " + runeToken.runeType + " " + runeToken.mobId + " " + runeToken.roomId);
-                runeDatabase.RemoveRuneToken(runeToken);
-            }
+
+            // Remove expired tokens.
+            runeTokens
+                .Where(runeToken => runeToken.timestamp + runeToken.duration < Time.time).ToList()
+                .ForEach(runeDatabase.RemoveTokenFrom);
 
             // Add new tokens.
             runesActions.ForEach(runeAction =>
@@ -67,7 +70,9 @@ namespace Runes
                     }
                     case RoomRuneHandlingType.Remove:
                         // Remove all tokens of this type.
-                        runeTokens.Where(runeToken => runeToken.runeType == runeAction.type).ToList().ForEach(runeDatabase.RemoveRuneToken);
+                        runeTokens
+                            .Where(runeToken => runeToken.runeType == runeAction.type).ToList()
+                            .ForEach(runeDatabase.RemoveTokenFrom);
                         break;
                     case RoomRuneHandlingType.Consume:
                     {
@@ -82,7 +87,7 @@ namespace Runes
                                 .Where(runeToken => runeToken.runeType == runeType)
                                 .Take(tokensToRemove)
                                 .ToList()
-                                .ForEach(runeDatabase.RemoveRuneToken);
+                                .ForEach(runeDatabase.RemoveTokenFrom);
                         });
                         break;
                     }
@@ -92,6 +97,65 @@ namespace Runes
                         throw new ArgumentOutOfRangeException();
                 }
             });
+        }
+
+        public QueryResultRunProcessing QueryRunProcessing(RuneDatabase runeDatabase, int mobId, RunesProcessors runesProcessors)
+        {
+            var hasTokens = runeDatabase.mobsRunesCollection.TryGetValue(mobId, out var runeTokens);
+            return !hasTokens ? new QueryResultRunProcessing() : runesProcessors.BuildQuery(runeTokens);
+        }
+
+        public struct QueryResultRunProcessing
+        {
+            public float damage;
+            public float slow;
+
+            public QueryResultRunProcessing AddDamage(float damage)
+            {
+                this.damage += damage;
+                return this;
+            }
+
+            public QueryResultRunProcessing AddSlow(float slow)
+            {
+                this.slow += slow;
+                return this;
+            }
+
+            public QueryResultRunProcessing Add(QueryResultRunProcessing other)
+            {
+                damage += other.damage;
+                slow += other.slow;
+                return this;
+            }
+
+            public QueryResultRunProcessing Multiply(float multiplier)
+            {
+                damage *= multiplier;
+                slow *= multiplier;
+                return this;
+            }
+
+            public QueryResultRunProcessing MultiplyDamage(float multiplier)
+            {
+                damage *= multiplier;
+                return this;
+            }
+
+            public QueryResultRunProcessing MultiplySlow(float multiplier)
+            {
+                slow *= multiplier;
+                return this;
+            }
+
+            public QueryResultRunProcessing Clone()
+            {
+                return new QueryResultRunProcessing
+                {
+                    damage = damage,
+                    slow = slow
+                };
+            }
         }
     }
 }

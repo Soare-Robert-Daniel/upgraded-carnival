@@ -8,22 +8,21 @@ namespace Runes
     [Serializable]
     public class RuneDatabase
     {
-        public List<RuneToken> data;
-        public Dictionary<int, List<int>> mobsRunesCollection;
+        public RuneDuration durationForDynamicRunes;
+        public Dictionary<int, List<RuneToken>> mobsRunesCollection;
         public Dictionary<int, Dictionary<RuneType, int>> mobsRunesCount;
         public SortedSet<int> runesToBeRemoved;
 
         public RuneDatabase()
         {
-            data = new List<RuneToken>();
             mobsRunesCount = new Dictionary<int, Dictionary<RuneType, int>>();
-            mobsRunesCollection = new Dictionary<int, List<int>>();
+            mobsRunesCollection = new Dictionary<int, List<RuneToken>>();
             runesToBeRemoved = new SortedSet<int>();
+            durationForDynamicRunes = new RuneDuration(500);
         }
 
         public void AddRuneToken(RuneToken runeToken)
         {
-            data.Add(runeToken);
 
             if (!mobsRunesCount.ContainsKey(runeToken.mobId))
             {
@@ -36,23 +35,29 @@ namespace Runes
 
             if (!mobsRunesCollection.ContainsKey(runeToken.mobId))
             {
-                mobsRunesCollection.Add(runeToken.mobId, new List<int>());
+                mobsRunesCollection.Add(runeToken.mobId, new List<RuneToken>());
             }
 
-            mobsRunesCollection[runeToken.mobId].Add(runeToken.id);
+            if (runeToken.runeDynamics == RuneDynamics.Dynamic)
+            {
+                // durationForDynamicRunes.Add(runeToken.id, runeToken.mobId, runeToken.duration);
+            }
+
+            mobsRunesCollection[runeToken.mobId].Add(runeToken);
             mobsRunesCount[runeToken.mobId][runeToken.runeType]++;
         }
 
-        public void RemoveRuneToken(RuneToken runeToken)
+
+        public void RemoveTokenFrom(RuneToken runeToken)
         {
-            mobsRunesCollection[runeToken.mobId].Remove(runeToken.id);
-            runesToBeRemoved.Add(runeToken.id);
+            // Remove from mobs collection.
+            mobsRunesCollection[runeToken.mobId].Remove(runeToken);
             mobsRunesCount[runeToken.mobId][runeToken.runeType]--;
         }
 
         public void ManualCleanup()
         {
-            data = data.Where((runeToken, index) => !runesToBeRemoved.Contains(index)).ToList();
+
             runesToBeRemoved.Clear();
 
             // Cleanup empty mobs.

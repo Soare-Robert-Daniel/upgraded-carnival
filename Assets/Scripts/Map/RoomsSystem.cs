@@ -15,6 +15,7 @@ namespace Map
         [SerializeField] private float[] roomsAttackTimeInterval;
         [SerializeField] private RoomType[] roomsType;
         [SerializeField] private List<RunesHandlerForRoom> roomsRunesHandlers;
+
         private bool[] roomsToDisarm;
 
         public RoomsSystem(int initialCapacity = 0)

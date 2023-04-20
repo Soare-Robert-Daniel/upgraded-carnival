@@ -7,11 +7,14 @@ using Economy;
 using GameEntities;
 using Map.Components;
 using Map.Room;
+using Mobs;
 using Runes;
 using UI;
 using Unity.Jobs;
 using UnityEngine;
+using UnityEngine.Serialization;
 using Debug = UnityEngine.Debug;
+using Mob = GameEntities.Mob;
 
 namespace Map
 {
@@ -75,6 +78,10 @@ namespace Map
         [SerializeField] private bool wavePrepared;
         [SerializeField] private Wave waveCreator;
         [SerializeField] private Path path;
+
+        [FormerlySerializedAs("path")] [SerializeField]
+        private Path2 path2;
+
         [SerializeField] private RuneDatabase runeDatabase;
 
         [Header("Systems")]
@@ -84,11 +91,16 @@ namespace Map
         [SerializeField] private RoomsSystem roomsSystem;
         [SerializeField] private MobsControllerSystem mobsControllerSystem;
 
+        [Header("Controllers")]
+        [SerializeField] private MobsController mobsController;
+
         public UIState uiState;
         private Dictionary<MobClassType, MobModel> entityClassToModel;
         private JobHandle jobHandle;
 
         private int mobGenID;
+
+        private Dictionary<int, int> mobsRoom;
         private int roomGenID;
         private Dictionary<RoomType, RoomRuneHandler> roomRuneHandlers;
         private Dictionary<RoomType, RoomModel> roomTypeToModels;
@@ -96,6 +108,7 @@ namespace Map
         private Stopwatch stopwatch;
 
         public EconomyController EconomyController => economyController;
+        public MobsController MobsController => mobsController;
 
         private void Awake()
         {
@@ -116,8 +129,15 @@ namespace Map
             runeStorage = new RuneStorage(1000);
             roomsSystem = new RoomsSystem(100);
             mobsSystem = new MobsSystem(100);
+            mobsRoom = new Dictionary<int, int>();
+
             mobsControllerSystem = new MobsControllerSystem(100);
-            path = new Path(100)
+
+            path = new Path();
+            path.AddPoint(mobStartingPoint.position);
+            path.AddPoint(mapRootPoint.position);
+
+            path2 = new Path2(100)
             {
                 HeightDistanceThreshold = 1f
             };
@@ -166,16 +186,16 @@ namespace Map
             stopwatch.Reset();
             stopwatch.Start();
 
-            if (mobsControllerSystem.GetMobControllersCount() > 0)
-            {
-                mobsControllerSystem.UpdateMobsNextPosition(
-                    mobsSystem.GetMobsSpeedArray(),
-                    mobsSystem.GetMobsSlowArray(),
-                    Time.deltaTime
-                );
-
-                mobsControllerSystem.UpdateMobControllersPositions();
-            }
+            // if (mobsControllerSystem.GetMobControllersCount() > 0)
+            // {
+            //     mobsControllerSystem.UpdateMobsNextPosition(
+            //         mobsSystem.GetMobsSpeedArray(),
+            //         mobsSystem.GetMobsSlowArray(),
+            //         Time.deltaTime
+            //     );
+            //
+            //     mobsControllerSystem.UpdateMobControllersPositions();
+            // }
         }
 
         private void LateUpdate()
@@ -188,14 +208,16 @@ namespace Map
                 }
             }
 
-            UpdateMobs();
+            UpdateMobsRooms();
+
+            // UpdateMobs();
 
             roomsSystem.UpdateRoomsAttackTime(Time.deltaTime);
             runeStorage.UpdateRunesDurations(Time.deltaTime);
 
             HandleRuneAndDamagePerMob();
 
-            mobsSystem.MoveRetiringMobsToDeploy();
+            // mobsSystem.MoveRetiringMobsToDeploy();
             roomsSystem.DisarmRooms();
 
             if (currentWaveTimer > waveTimeInterval)
@@ -227,9 +249,9 @@ namespace Map
                 if (currentStatus == EntityRoomStatus.Entered)
                 {
                     mobsSystem.SetRoomStatus(mobId, EntityRoomStatus.Moving);
-                    if (path.NeedToTeleport(mobsControllerSystem.GetMobPosition(mobId), mobsSystem.GetLocationRoomIndex(mobId)))
+                    if (path2.NeedToTeleport(mobsControllerSystem.GetMobPosition(mobId), mobsSystem.GetLocationRoomIndex(mobId)))
                     {
-                        mobsControllerSystem.SetMobPosition(mobId, path.GetEnterPoint(mobsSystem.GetLocationRoomIndex(mobId)));
+                        mobsControllerSystem.SetMobPosition(mobId, path2.GetEnterPoint(mobsSystem.GetLocationRoomIndex(mobId)));
                     }
                 }
                 else if (currentStatus == EntityRoomStatus.Exiting)
@@ -256,10 +278,10 @@ namespace Map
                 else if (currentStatus == EntityRoomStatus.Moving)
                 {
                     if (
-                        !path.IsInRoom(mobsPositions[mobId], mobsRoomIndex[mobId]) &&
+                        !path2.IsInRoom(mobsPositions[mobId], mobsRoomIndex[mobId]) &&
                         (
-                            path.FindRoomIndex(mobsPositions[mobId], mobsRoomIndex[mobId] + 1) != Path.NoRoomFound ||
-                            path.NeedToTeleport(mobsPositions[mobId], mobsRoomIndex[mobId] + 1)
+                            path2.FindRoomIndex(mobsPositions[mobId], mobsRoomIndex[mobId] + 1) != Path2.NoRoomFound ||
+                            path2.NeedToTeleport(mobsPositions[mobId], mobsRoomIndex[mobId] + 1)
                         )
                     )
                     {
@@ -271,18 +293,51 @@ namespace Map
         }
         private bool TrySpawnMob()
         {
-            if (mobsSystem.ReadyToDeployMobCount() == 0 || !waveCreator.HasMobsToSpawn())
+            // Debug.Log($"TrySpawnMob {waveCreator.HasMobsToSpawn()} {mobsController.CanSpawnMob()}");
+            if (!waveCreator.HasMobsToSpawn() || !mobsController.CanSpawnMob())
                 return false;
 
             var mobData = waveCreator.DequeueMobsToSpawn().First();
-            var mobId = mobsSystem.PullMobsToDeploy().First();
+            // var mobId = mobsSystem.PullMobsToDeploy().First();
+            //
+            // mobsSystem.SetBounty(mobId, mobData.Bounty);
+            // mobsSystem.SetRoomIndex(mobId, 0);
+            // mobsSystem.SetRoomStatus(mobId, EntityRoomStatus.Entered);
+            // mobsSystem.SetHealth(mobId, mobData.Stats.health);
+            // mobsSystem.SetSpeed(mobId, mobData.Stats.speed);
+            // mobsSystem.ResetSlowFor(mobId);
 
-            mobsSystem.SetBounty(mobId, mobData.Bounty);
-            mobsSystem.SetRoomIndex(mobId, 0);
-            mobsSystem.SetRoomStatus(mobId, EntityRoomStatus.Entered);
-            mobsSystem.SetHealth(mobId, mobData.Stats.health);
-            mobsSystem.SetSpeed(mobId, mobData.Stats.speed);
-            mobsSystem.ResetSlowFor(mobId);
+            var mob = new Mobs.Mob
+            {
+                id = GenMobID(),
+                slow = 0,
+                health = mobData.Stats.health,
+                baseSpeed = mobData.Stats.speed,
+                position = mobStartingPoint.position
+            };
+
+            mobsController.SpawnMob(mob);
+
+            return true;
+        }
+
+        public bool TryFindClosestMob(Vector3 towerPosition, out Mobs.Mob closestMob)
+        {
+            closestMob = null;
+            if (mobsController.Mobs.Count == 0) return false;
+
+            closestMob = mobsController.Mobs[0];
+            var closestDistance = Vector3.Distance(towerPosition, closestMob.position);
+
+            foreach (var mob in mobsController.Mobs)
+            {
+                var distance = Vector3.Distance(towerPosition, mob.position);
+                if (distance < closestDistance)
+                {
+                    closestDistance = distance;
+                    closestMob = mob;
+                }
+            }
 
             return true;
         }
@@ -317,7 +372,7 @@ namespace Map
         {
             // If there are fewer mobs to deploy than the number of the wave, we need to add more mobs to the pool.
             var mobsToDeploy = waveCreator.GetMobsToSpawnCount();
-            var mobsInPool = mobsSystem.ReadyToDeployMobCount();
+            var mobsInPool = mobsController.FreeControllersCount;
             var mobsToAdd = mobsToDeploy - mobsInPool;
             Debug.Log($"Mobs to deploy: {mobsToDeploy}, Mobs in pool: {mobsInPool}, Mobs to add: {mobsToAdd}");
             if (mobsToAdd > 0)
@@ -338,7 +393,7 @@ namespace Map
         {
             Debug.Log("Creating mob and adding to pool");
             // By letting the room to register himself in Start, it will be available for next round.
-            var mobObj = Instantiate(mobTemplate, mobStartingPoint.transform);
+            var mobObj = Instantiate(mobTemplate, mobStartingPoint.transform.position, Quaternion.identity);
             var mobController = mobObj.GetComponent<Mob>();
             mobController.UpdateBodySprite(entityClassToModel[mobClass].assets.RenderedSprite);
 
@@ -349,7 +404,18 @@ namespace Map
             }
 
             mobController.Manager = this;
-            RegisterMob(mobController);
+            // RegisterMob(mobController);
+
+            var simpleMobController = mobObj.GetComponent<MobSimpleController>();
+
+            if (simpleMobController == null)
+            {
+                Debug.LogError("The Mob template DOES NOT HAVE THE CONTROLLER");
+                return;
+            }
+
+            simpleMobController.transform.position = mobStartingPoint.position;
+            mobsController.AddMobController(simpleMobController);
         }
 
         #endregion
@@ -387,6 +453,7 @@ namespace Map
         public void AddLevelToLayout()
         {
             var obj = Instantiate(levelTemplate, mapRootPoint.position + levelsNum * offset, Quaternion.identity);
+            mobStartingPoint.transform.position = mapRootPoint.position + (levelsNum + 1) * offset;
             var levelController = obj.GetComponent<LevelController>();
             RegisterLevel(levelController);
             levelsNum += 1;
@@ -396,6 +463,7 @@ namespace Map
         {
             // Might add more things when registering a level (like sound effects).
             levelsControllers.Add(level);
+            path.AddZone(level.northBound.position, level.southBound.position);
             RegisterRooms(level.roomsControllers);
         }
 
@@ -417,7 +485,7 @@ namespace Map
 
             roomsSystem.ChangeRuneHandler(roomId, new RunesHandlerForRoom(roomTypeToModels[RoomType.Empty]));
 
-            path.AddPath(room.StartingPointPosition, room.ExitPointPosition);
+            path2.AddPath(room.StartingPointPosition, room.ExitPointPosition);
 
             roomsControllers.Add(room);
             room.UpdateRoomName();
@@ -488,13 +556,48 @@ namespace Map
                 var roomType = roomsSystem.GetRoomType(roomId);
 
                 // Rune Storage.
-                roomRuneHandlers[roomType].AddRunesToStorageBufferForEntity(runeStorage, mobId);
-                roomRuneHandlers[roomType].ComputeDamageAndSlowForMobWithRuneStorage(runeStorage, mobId, out var damage, out var slow);
-                roomRuneHandlers[roomType].RemoveRunesFromStorageForEntity(runeStorage, mobId);
+                // roomRuneHandlers[roomType].AddRunesToStorageBufferForEntity(runeStorage, mobId);
+                // roomRuneHandlers[roomType].ComputeDamageAndSlowForMobWithRuneStorage(runeStorage, mobId, out var damage, out var slow);
+                // roomRuneHandlers[roomType].RemoveRunesFromStorageForEntity(runeStorage, mobId);
+
                 roomsSystem.GetRunesHandler(roomId).UpdateDatabase(runeDatabase, roomId, mobId);
 
-                mobsSystem.UpdateDamageReceived(mobId, damage);
-                mobsSystem.SetSlow(mobId, slow);
+                var queryResult = new RunesHandlerForRoom.QueryResultRunProcessing();
+
+                switch (roomType)
+                {
+
+                    case RoomType.Empty:
+                        break;
+                    case RoomType.SlowRune:
+                        queryResult = roomsSystem
+                            .GetRunesHandler(roomId)
+                            .QueryRunProcessing(runeDatabase, roomId,
+                                RunesProcessorFactory.CreateProcessor(ProcessorType.Slow));
+                        break;
+                    case RoomType.AttackRune:
+                        break;
+                    case RoomType.ConstantAttackFire:
+                        queryResult = roomsSystem
+                            .GetRunesHandler(roomId)
+                            .QueryRunProcessing(runeDatabase, roomId,
+                                RunesProcessorFactory.CreateProcessor(ProcessorType.Attack))
+                            .AddDamage(5);
+
+                        break;
+                    case RoomType.BurstAttackFire:
+                        queryResult = roomsSystem
+                            .GetRunesHandler(roomId)
+                            .QueryRunProcessing(runeDatabase, roomId,
+                                RunesProcessorFactory.CreateProcessor(ProcessorType.Attack))
+                            .MultiplyDamage(5);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+
+                mobsSystem.UpdateDamageReceived(mobId, queryResult.damage);
+                mobsSystem.SetSlow(mobId, queryResult.slow);
 
                 roomsSystem.AddRoomToDisarm(roomId);
 
@@ -502,7 +605,7 @@ namespace Map
 
                 // Update Mob Controller.
 
-                if (damage > 0f)
+                if (queryResult.damage > 0f)
                 {
                     mob.UpdateHealthBar(mobsSystem.GetHealth(mobId) / 100f);
                 }
@@ -570,6 +673,28 @@ namespace Map
         {
             var bounty = mobsSystem.GetBounty(mobId);
             economyController.AddCurrency(bounty.currency, bounty.value);
+        }
+
+        private void UpdateMobsRooms()
+        {
+            foreach (var mob in mobsController.Mobs)
+            {
+                if (!mobsRoom.ContainsKey(mob.id))
+                {
+                    mobsRoom.Add(mob.id, path.GetZoneIndex(mob.position));
+                }
+                else
+                {
+                    mobsRoom[mob.id] = path.GetZoneIndex(mob.position);
+                }
+            }
+
+            // Print mobs room using Debug.Log and linq only if we have at least one mob
+            // if (mobsRoom.Count > 0)
+            // {
+            //     Debug.Log(string.Join(", ", mobsRoom.Select(x => x.Key + ":" + x.Value)));
+            // }
+
         }
 
         #endregion

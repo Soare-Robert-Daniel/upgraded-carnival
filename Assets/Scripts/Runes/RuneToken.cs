@@ -7,11 +7,17 @@ using UnityEngine;
 
 namespace Runes
 {
+    public enum RuneDynamics
+    {
+        Static,
+        Dynamic
+    }
+
     [Serializable]
     public struct RuneValue : ICloneable
     {
-        private float damage;
-        private float slow;
+        public float damage;
+        public float slow;
 
         public object Clone()
         {
@@ -31,6 +37,7 @@ namespace Runes
         public int roomId;
         public float duration;
         public float timestamp;
+        public RuneDynamics runeDynamics;
         public RuneType runeType;
         public RuneValue runeValue;
 

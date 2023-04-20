@@ -18,12 +18,12 @@ namespace Map.Room
     [Serializable]
     public class RoomsRuneWrapper
     {
-
         public RuneType type;
         public RuneValue value;
         public float damage;
         public float slow;
         public float duration;
+        public RuneDynamics runeDynamics;
         public RoomRuneHandlingType actionType;
         public List<RuneCondition> runesConditions;
 
