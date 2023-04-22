@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using GameEntities;
+using UnityEngine;
 
 namespace Mobs
 {
@@ -6,11 +7,25 @@ namespace Mobs
     {
         [SerializeField] private int mobId;
 
+        [SerializeField] private HealthBarController healthBarController;
+        [SerializeField] private SpriteRenderer bodySpriteRenderer;
+
         public int MobId => mobId;
 
         public void SetMobId(int id)
         {
             mobId = id;
+        }
+
+
+        public void UpdateHealthBar(float healthPercentage)
+        {
+            healthBarController.SetPercentage(healthPercentage);
+        }
+
+        public void UpdateBodySprite(Sprite sprite)
+        {
+            bodySpriteRenderer.sprite = sprite;
         }
     }
 }

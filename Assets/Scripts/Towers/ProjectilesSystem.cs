@@ -69,14 +69,7 @@ namespace Towers
 
                 if (mobsHit.Count == 0) continue;
 
-                if (!projectilesToMobsHit.ContainsKey(activeProjectile))
-                {
-                    projectilesToMobsHit.Add(activeProjectile, mobsHit);
-                }
-                else
-                {
-                    projectilesToMobsHit[activeProjectile].AddRange(mobsHit);
-                }
+                projectilesToMobsHit[activeProjectile] = mobsHit;
 
                 // Debug.Log(string.Join(", ", mobsHit.Select(x => x.ToString()).ToArray()));
             }
@@ -154,6 +147,11 @@ namespace Towers
         public Dictionary<int, List<int>> MobsHitByProjectiles()
         {
             return projectilesToMobsHit;
+        }
+
+        public bool TryGetProjectile(int id, out Projectile projectile)
+        {
+            return projectiles.TryGetValue(id, out projectile);
         }
     }
 

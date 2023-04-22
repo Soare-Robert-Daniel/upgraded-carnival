@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Map;
+using Mobs;
+using Towers.Zones;
 using UnityEngine;
 
 namespace Towers
@@ -8,8 +10,8 @@ namespace Towers
     public class TowerManager : MonoBehaviour
     {
         [SerializeField] private MapManager mapManager;
-        [SerializeField] private ProjectilesSystem projectilesSystem;
-        [SerializeField] private TowerSystem towerSystem;
+
+        [SerializeField] private EventChannel eventChannel;
 
         [Header("Settings")]
         [SerializeField] private Transform idleSpot;
@@ -19,6 +21,7 @@ namespace Towers
         [SerializeField] private float projectileExpireTime;
         [SerializeField] private float collisionCheckInterval;
         [SerializeField] private List<TowerController> towerControllers;
+        [SerializeField] private List<ZoneTokenDataScriptableObject> zoneTokenDataScriptableObjects;
 
         [Header("Templates")]
         [SerializeField] private GameObject projectileTemplate;
@@ -26,7 +29,15 @@ namespace Towers
         [Header("Internal")]
         [SerializeField] private float currentCollisionCheckTime;
 
-        private void Start()
+        [Header("Systems")]
+        [SerializeField] private ProjectilesSystem projectilesSystem;
+
+        [SerializeField] private TowerSystem towerSystem;
+
+        private Queue<(Projectile, List<Mob>)> attacksQueue;
+        [SerializeField] private TokenZoneSystem tokenZoneSystem;
+
+        private void Awake()
         {
             projectilesSystem = new ProjectilesSystem(projectilePoolSize, this)
             {
@@ -41,7 +52,14 @@ namespace Towers
                 towerSystem.AddTowerController(towerController);
             }
 
+            attacksQueue = new Queue<(Projectile, List<Mob>)>();
+
             currentCollisionCheckTime = 0f;
+
+            tokenZoneSystem = new TokenZoneSystem(zoneTokenDataScriptableObjects);
+
+            eventChannel.OnZoneControllerAdded += RegisterZone;
+            eventChannel.OnZoneTypeChanged += tokenZoneSystem.ChangeZoneType;
         }
 
         private void Update()
@@ -55,7 +73,7 @@ namespace Towers
 
         private void LateUpdate()
         {
-
+            // Check collisions
             if (currentCollisionCheckTime >= collisionCheckInterval)
             {
                 currentCollisionCheckTime = 0f;
@@ -65,12 +83,34 @@ namespace Towers
                 {
                     if (mobsHit.Count == 0) continue;
 
+                    var hasProjectile = projectilesSystem.TryGetProjectile(projectileId, out var projectile);
+
+                    if (!hasProjectile) continue;
+
+                    var mobs = mapManager.MobsController.Mobs;
+
+                    var mobsList = (from mob in mobsHit where mobsHit.Contains(mob) select mobs[mob]).ToList();
+
+                    attacksQueue.Enqueue((projectile, mobsList));
 
                     projectilesSystem.MarkToDestroy(projectileId);
                 }
             }
 
+            // Process attacks
+            while (attacksQueue.Count > 0)
+            {
+                var (projectile, mobs) = attacksQueue.Dequeue();
+                foreach (var mob in mobs)
+                {
+                    mob.Health -= 10f;
+                    mapManager.MobsController.MarkToVisualUpdate(mob.id);
+                }
+            }
+
+            // Remove destroyed projectiles
             projectilesSystem.RemoveProjectiles();
+
 
             foreach (var tower in towerSystem.Towers.Where(tower => tower.canFire && tower.readyToFire))
             {
@@ -87,7 +127,7 @@ namespace Towers
                     .WithTargetId(target.id)
                     .WithPosition(startPosition)
                     .WithSpeed(projectileSpeed)
-                    .WithDestination(mapManager.MobsController.GetMobControllerPosition(target.id));
+                    .WithDestination(target.position);
                 var projectile = projectilesSystem.TryAddProjectile(tower.projectileBuilder, out var projectileObj);
                 if (projectile)
                 {
@@ -101,6 +141,12 @@ namespace Towers
         {
             var obj = Instantiate(projectileTemplate, idleSpot.transform.position, Quaternion.identity);
             return obj;
+        }
+
+        public void RegisterZone(int zoneId, RoomController zone)
+        {
+            Debug.Log($"Registering zone {zoneId}");
+            tokenZoneSystem.AddOrUpdateZone(zoneId, ZoneTokenType.None);
         }
     }
 

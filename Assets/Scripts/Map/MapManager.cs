@@ -9,6 +9,7 @@ using Map.Components;
 using Map.Room;
 using Mobs;
 using Runes;
+using Towers.Zones;
 using UI;
 using Unity.Jobs;
 using UnityEngine;
@@ -78,6 +79,7 @@ namespace Map
         [SerializeField] private bool wavePrepared;
         [SerializeField] private Wave waveCreator;
         [SerializeField] private Path path;
+        [SerializeField] private EventChannel eventChannel;
 
         [FormerlySerializedAs("path")] [SerializeField]
         private Path2 path2;
@@ -161,19 +163,30 @@ namespace Map
             waveCreator = new Wave(waveMobNumberPerWaveModel, entityClassToModel);
             runeDatabase = new RuneDatabase();
 
-            CreateLayout(startingLevelsNum);
-
             stopwatch = new Stopwatch();
+
+            eventChannel.OnZoneTypeChanged += (i, type) =>
+            {
+                Debug.Log($"Zone type changed: {i} {type}");
+            };
+
+            eventChannel.OnZoneControllerAdded += (i, zoneController) =>
+            {
+                Debug.Log($"Zone controller added: {i} {zoneController}");
+            };
         }
 
         private void Start()
         {
+            CreateLayout(startingLevelsNum);
             OnInitUI?.Invoke();
         }
 
         public void Update()
         {
             // UpdateMobsRunes();
+
+            MobsController.UpdateVisuals();
 
             if (enableWave)
             {
@@ -225,15 +238,14 @@ namespace Map
                 StartWave();
             }
 
-            stopwatch.Stop();
-
-            OnMapLogicTimeChanged?.Invoke(stopwatch.ElapsedMilliseconds);
-
             if (databaseCleanUpInterval > 1f)
             {
                 runeDatabase.ManualCleanup();
                 databaseCleanUpInterval = 0;
             }
+
+            stopwatch.Stop();
+            OnMapLogicTimeChanged?.Invoke(stopwatch.ElapsedMilliseconds);
         }
 
         public void UpdateMobs()
@@ -307,12 +319,14 @@ namespace Map
             // mobsSystem.SetSpeed(mobId, mobData.Stats.speed);
             // mobsSystem.ResetSlowFor(mobId);
 
-            var mob = new Mobs.Mob
+            var mob = new Mobs.Mob(
+                new BaseStats
+                {
+                    baseHealth = mobData.Stats.health,
+                    baseSpeed = mobData.Stats.speed
+                })
             {
                 id = GenMobID(),
-                slow = 0,
-                health = mobData.Stats.health,
-                baseSpeed = mobData.Stats.speed,
                 position = mobStartingPoint.position
             };
 
@@ -324,12 +338,12 @@ namespace Map
         public bool TryFindClosestMob(Vector3 towerPosition, out Mobs.Mob closestMob)
         {
             closestMob = null;
-            if (mobsController.Mobs.Count == 0) return false;
+            if (mobsController.MobsList.Count == 0) return false;
 
-            closestMob = mobsController.Mobs[0];
+            closestMob = mobsController.MobsList[0];
             var closestDistance = Vector3.Distance(towerPosition, closestMob.position);
 
-            foreach (var mob in mobsController.Mobs)
+            foreach (var mob in mobsController.MobsList)
             {
                 var distance = Vector3.Distance(towerPosition, mob.position);
                 if (distance < closestDistance)
@@ -433,6 +447,10 @@ namespace Map
 
         public event Action<float> OnMapLogicTimeChanged;
 
+        public event Action<int, RoomController> OnRegisterZone;
+
+        public event Action<int, ZoneTokenType> OnZoneTypeChanged;
+
         #endregion
 
         #region Map Generation
@@ -489,6 +507,8 @@ namespace Map
 
             roomsControllers.Add(room);
             room.UpdateRoomName();
+
+            eventChannel.AddZoneController(room.ID, room);
         }
 
         private int GenRoomID()
@@ -511,6 +531,8 @@ namespace Map
             roomsSystem.SetType(selectedRoomId, roomType);
             roomsSystem.SetAttackTimeInterval(selectedRoomId, roomTypeToModels[roomType].fireRate);
             roomsSystem.ChangeRuneHandler(selectedRoomId, new RunesHandlerForRoom(roomTypeToModels[roomType]));
+
+            OnZoneTypeChanged?.Invoke(selectedRoomId, ZoneTokenType.Damage);
         }
 
         public void TryBuyRoomForSelectedRoom(RoomType roomType)
@@ -677,7 +699,7 @@ namespace Map
 
         private void UpdateMobsRooms()
         {
-            foreach (var mob in mobsController.Mobs)
+            foreach (var mob in mobsController.MobsList)
             {
                 if (!mobsRoom.ContainsKey(mob.id))
                 {

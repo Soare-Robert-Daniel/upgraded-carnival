@@ -10,6 +10,7 @@ namespace Towers
         [SerializeField] private CircleCollider2D circleCollider2D;
         private ContactFilter2D contactFilter2D;
         private List<Collider2D> hitColliders;
+        private List<int> mobsHit;
 
         public CircleCollider2D Collider => circleCollider2D;
 
@@ -17,11 +18,12 @@ namespace Towers
         {
             hitColliders = new List<Collider2D>();
             contactFilter2D = new ContactFilter2D();
+            mobsHit = new List<int>();
         }
 
         public List<int> MobsHit()
         {
-            var mobsHit = new List<int>();
+            mobsHit.Clear();
             var count = Collider.OverlapCollider(contactFilter2D, hitColliders);
             for (var i = 0; i < count; i++)
             {

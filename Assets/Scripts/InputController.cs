@@ -24,6 +24,7 @@ public class InputController : MonoBehaviour
     private void Init()
     {
         manager.OnLevelUpdated += ManagerOnOnLevelUpdated;
+        cameraUpperLimit = baseUpperLimit + increaseUpperLimitDistance;
     }
 
     private void ManagerOnOnLevelUpdated(int level, float value)

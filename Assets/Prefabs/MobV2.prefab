@@ -149,6 +149,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 12337e76ff744bbf916c9dbb517daf79, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mobId: 0
+  healthBarController: {fileID: 7637148285591796571}
+  bodySpriteRenderer: {fileID: 5434313057496634094}
 --- !u!61 &1773205168726533425
 BoxCollider2D:
   m_ObjectHideFlags: 0
