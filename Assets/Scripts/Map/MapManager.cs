@@ -13,7 +13,6 @@ using Towers.Zones;
 using UI;
 using Unity.Jobs;
 using UnityEngine;
-using UnityEngine.Serialization;
 using Debug = UnityEngine.Debug;
 using Mob = GameEntities.Mob;
 
@@ -44,12 +43,14 @@ namespace Map
         [SerializeField] private float currentPricePerLevel;
         [SerializeField] private float pricePerLevelMultiplier;
         [SerializeField] private Vector3 offset;
-        [SerializeField] private List<LevelController> levelsControllers;
+        [SerializeField] private List<ZoneController> levelsControllers;
 
         [Header("Rooms")]
         [SerializeField] private List<RoomController> roomsControllers;
 
         [Header("Resources")]
+        public GlobalResources globalResources;
+
         [SerializeField] private float databaseCleanUpInterval;
 
         [SerializeField] private int startingLevelsNum;
@@ -80,9 +81,6 @@ namespace Map
         [SerializeField] private Wave waveCreator;
         [SerializeField] private Path path;
         [SerializeField] private EventChannel eventChannel;
-
-        [FormerlySerializedAs("path")] [SerializeField]
-        private Path2 path2;
 
         [SerializeField] private RuneDatabase runeDatabase;
 
@@ -118,7 +116,7 @@ namespace Map
             roomGenID = 0;
             levelsNum = 0;
 
-            levelsControllers = new List<LevelController>();
+            levelsControllers = new List<ZoneController>();
             roomsControllers = new List<RoomController>();
 
             roomRuneHandlers = new Dictionary<RoomType, RoomRuneHandler>();
@@ -139,10 +137,6 @@ namespace Map
             path.AddPoint(mobStartingPoint.position);
             path.AddPoint(mapRootPoint.position);
 
-            path2 = new Path2(100)
-            {
-                HeightDistanceThreshold = 1f
-            };
 
             roomTypeToModels = new Dictionary<RoomType, RoomModel>();
             foreach (var roomModel in roomModels.list)
@@ -170,9 +164,9 @@ namespace Map
                 Debug.Log($"Zone type changed: {i} {type}");
             };
 
-            eventChannel.OnZoneControllerAdded += (i, zoneController) =>
+            eventChannel.OnZoneControllerAdded += (zoneController) =>
             {
-                Debug.Log($"Zone controller added: {i} {zoneController}");
+                Debug.Log($"Zone controller added: {zoneController.zoneId}");
             };
         }
 
@@ -248,61 +242,7 @@ namespace Map
             OnMapLogicTimeChanged?.Invoke(stopwatch.ElapsedMilliseconds);
         }
 
-        public void UpdateMobs()
-        {
-            var mobsRoomStatus = mobsSystem.GetMobsRoomStatusArray();
-            var mobsPositions = mobsControllerSystem.GetMobControllersPositionsArray();
-            var mobsRoomIndex = mobsSystem.GetMobsRoomIndexArray();
 
-            for (var mobId = 0; mobId < mobsSystem.GetMobCount(); mobId++)
-            {
-                var currentStatus = mobsRoomStatus[mobId];
-
-                if (currentStatus == EntityRoomStatus.Entered)
-                {
-                    mobsSystem.SetRoomStatus(mobId, EntityRoomStatus.Moving);
-                    if (path2.NeedToTeleport(mobsControllerSystem.GetMobPosition(mobId), mobsSystem.GetLocationRoomIndex(mobId)))
-                    {
-                        mobsControllerSystem.SetMobPosition(mobId, path2.GetEnterPoint(mobsSystem.GetLocationRoomIndex(mobId)));
-                    }
-                }
-                else if (currentStatus == EntityRoomStatus.Exiting)
-                {
-                    if (HasMobPassedTheFinalRoom(mobId))
-                    {
-                        mobsSystem.SetRoomStatus(mobId, EntityRoomStatus.Retiring);
-                        OnMobReachedFinalRoom?.Invoke(mobsControllerSystem.GetController(mobId));
-                    }
-
-                    mobsRoomStatus[mobId] = EntityRoomStatus.Entered;
-                    if (mobsRoomIndex[mobId] + 1 >= roomsControllers.Count)
-                    {
-                        mobsRoomStatus[mobId] = EntityRoomStatus.Retiring;
-
-                    }
-                    mobsRoomIndex[mobId] = Math.Clamp(mobsRoomIndex[mobId] + 1, 0, roomsControllers.Count - 1);
-                }
-                else if (currentStatus == EntityRoomStatus.Retiring)
-                {
-                    MoveMobToStartingPoint(mobId);
-                    CollectBountyFromMob(mobId);
-                }
-                else if (currentStatus == EntityRoomStatus.Moving)
-                {
-                    if (
-                        !path2.IsInRoom(mobsPositions[mobId], mobsRoomIndex[mobId]) &&
-                        (
-                            path2.FindRoomIndex(mobsPositions[mobId], mobsRoomIndex[mobId] + 1) != Path2.NoRoomFound ||
-                            path2.NeedToTeleport(mobsPositions[mobId], mobsRoomIndex[mobId] + 1)
-                        )
-                    )
-                    {
-                        mobsSystem.SetRoomStatus(mobId, EntityRoomStatus.Exiting);
-                    }
-                }
-
-            }
-        }
         private bool TrySpawnMob()
         {
             // Debug.Log($"TrySpawnMob {waveCreator.HasMobsToSpawn()} {mobsController.CanSpawnMob()}");
@@ -464,25 +404,27 @@ namespace Map
 
             while (levels > levelsNum)
             {
-                AddLevelToLayout();
+                AddZoneToLayout();
             }
         }
 
-        public void AddLevelToLayout()
+        public void AddZoneToLayout()
         {
             var obj = Instantiate(levelTemplate, mapRootPoint.position + levelsNum * offset, Quaternion.identity);
             mobStartingPoint.transform.position = mapRootPoint.position + (levelsNum + 1) * offset;
-            var levelController = obj.GetComponent<LevelController>();
-            RegisterLevel(levelController);
+            var levelController = obj.GetComponent<ZoneController>();
+            RegisterZone(levelController);
             levelsNum += 1;
         }
 
-        private void RegisterLevel(LevelController level)
+        private void RegisterZone(ZoneController zone)
         {
             // Might add more things when registering a level (like sound effects).
-            levelsControllers.Add(level);
-            path.AddZone(level.northBound.position, level.southBound.position);
-            RegisterRooms(level.roomsControllers);
+            levelsControllers.Add(zone);
+            zone.zoneId = levelsControllers.Count - 1;
+            path.AddZone(zone.northBound.position, zone.southBound.position);
+            // RegisterRooms(level.roomsControllers);
+            eventChannel.AddZoneController(zone);
         }
 
         private void RegisterRooms(List<RoomController> rooms)
@@ -499,16 +441,8 @@ namespace Map
             room.ID = GenRoomID();
             room.MapManager = this;
 
-            var roomId = roomsSystem.AddRoom(RoomType.Empty, 0, room.StartingPointPosition, room.ExitPointPosition);
-
-            roomsSystem.ChangeRuneHandler(roomId, new RunesHandlerForRoom(roomTypeToModels[RoomType.Empty]));
-
-            path2.AddPath(room.StartingPointPosition, room.ExitPointPosition);
-
             roomsControllers.Add(room);
             room.UpdateRoomName();
-
-            eventChannel.AddZoneController(room.ID, room);
         }
 
         private int GenRoomID()
@@ -523,6 +457,12 @@ namespace Map
             return 0 <= selectedRoomId && selectedRoomId < roomsControllers.Count;
         }
 
+        private void ChangeZoneTypeForSelectedZone(ZoneTokenType zoneType)
+        {
+
+            eventChannel.ChangeZoneType(selectedRoomId, zoneType);
+        }
+
         private void ChangeRoomTypeForSelectedRoom(RoomType roomType)
         {
             roomsControllers[selectedRoomId].RoomSettings.LoadFromModel(roomTypeToModels[roomType]);
@@ -535,13 +475,16 @@ namespace Map
             OnZoneTypeChanged?.Invoke(selectedRoomId, ZoneTokenType.Damage);
         }
 
-        public void TryBuyRoomForSelectedRoom(RoomType roomType)
+        public void TryBuyZoneForSelectedZone(ZoneTokenType zoneTokenType)
         {
-            if (!IsSelectedRoomValid()) return;
-            if (!economyController.CanSpend(Currency.Gold, roomTypeToModels[roomType].price)) return;
+            // if (!IsSelectedRoomValid()) return;
+            var price = globalResources.GetZonesResources()[zoneTokenType].price.value;
+            if (!economyController.CanSpend(Currency.Gold, price)) return;
 
-            economyController.SpendCurrency(Currency.Gold, roomTypeToModels[roomType].price);
-            ChangeRoomTypeForSelectedRoom(roomType);
+            Debug.Log($"Buying zone [{zoneTokenType}] for {price} gold");
+
+            economyController.SpendCurrency(Currency.Gold, price);
+            ChangeZoneTypeForSelectedZone(zoneTokenType);
         }
 
         public void TryBuyLevel()
@@ -549,7 +492,7 @@ namespace Map
             if (!economyController.CanSpend(Currency.Gold, currentPricePerLevel)) return;
 
             economyController.SpendCurrency(Currency.Gold, currentPricePerLevel);
-            AddLevelToLayout();
+            AddZoneToLayout();
             IncreaseBuyLevelPrice();
             OnLevelUpdated?.Invoke(levelsNum, currentPricePerLevel);
         }
@@ -648,21 +591,21 @@ namespace Map
             set => selectedRoomId = value;
         }
 
-        public void ChangeSelectedRoomWithEvent(int roomId)
+        public void ChangeSelectedZoneWithEvent(int zoneId)
         {
-            if (IsSelectedRoomValid())
-            {
-                roomsControllers[SelectedRoomId].Deselect();
-            }
-
-            SelectedRoomId = roomId;
-            if (!IsSelectedRoomValid())
-            {
-                return;
-            }
-
-            roomsControllers[roomId].Select();
-            OnSelectedRoomChange?.Invoke(roomId);
+            // if (IsSelectedRoomValid())
+            // {
+            //     roomsControllers[SelectedRoomId].Deselect();
+            // }
+            //
+            // SelectedRoomId = zoneId;
+            // if (!IsSelectedRoomValid())
+            // {
+            //     return;
+            // }
+            //
+            // roomsControllers[zoneId].Select();
+            OnSelectedRoomChange?.Invoke(zoneId);
         }
 
         public List<RoomModel> RoomModels => roomModels.list;

@@ -43,17 +43,20 @@ namespace UI
 
         public void InitUI()
         {
-            foreach (var roomModel in manager.RoomModels)
+            foreach (var (zoneTokenType, res) in manager.globalResources.GetZonesResources())
             {
                 var btnElem = roomBtnTemplate.CloneTree();
 
                 var btn = btnElem.Q<Button>("BuyRoomBtn");
                 var roomPrice = btnElem.Q<Label>("RoomPrice");
 
-                btn.text = $"Buy {roomModel.roomName}";
-                btn.clicked += () => manager.TryBuyRoomForSelectedRoom(roomModel.roomType);
+                btn.text = $"Buy {res.resourcesScriptableObject.label}";
+                btn.clicked += () =>
+                {
+                    manager.TryBuyZoneForSelectedZone(zoneTokenType);
+                };
 
-                roomPrice.text = $"{roomModel.price}";
+                roomPrice.text = $"{res.price.value}";
 
                 mainContainer.Add(btnElem);
             }

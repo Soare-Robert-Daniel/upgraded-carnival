@@ -12,7 +12,7 @@ namespace Towers.Zones
         Freeze
     }
 
-    public enum DamageTrigger
+    public enum Trigger
     {
         TowerHit,
         TimerTick

@@ -49,12 +49,11 @@ public class InputController : MonoBehaviour
             return;
         }
 
-        if (hit.collider.CompareTag("RoomOverlay"))
-        {
-            var id = hit.collider.transform.parent.gameObject.GetComponent<RoomController>().ID;
-            // Debug.Log($"Found a room {id}");
-            manager.ChangeSelectedRoomWithEvent(id);
-        }
+        if (!hit.collider.CompareTag("ZoneTowerOverlay")) return;
+
+        var id = hit.collider.transform.parent.gameObject.GetComponent<ZoneController>().zoneId;
+        // Debug.Log($"Found a room {id}");
+        manager.ChangeSelectedZoneWithEvent(id);
     }
 
     public void MoveCamera(InputAction.CallbackContext context)

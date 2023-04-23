@@ -10,8 +10,9 @@ namespace Towers
     public class TowerManager : MonoBehaviour
     {
         [SerializeField] private MapManager mapManager;
-
         [SerializeField] private EventChannel eventChannel;
+        [SerializeField] private GlobalResources globalResources;
+
 
         [Header("Settings")]
         [SerializeField] private Transform idleSpot;
@@ -21,7 +22,6 @@ namespace Towers
         [SerializeField] private float projectileExpireTime;
         [SerializeField] private float collisionCheckInterval;
         [SerializeField] private List<TowerController> towerControllers;
-        [SerializeField] private List<ZoneTokenDataScriptableObject> zoneTokenDataScriptableObjects;
 
         [Header("Templates")]
         [SerializeField] private GameObject projectileTemplate;
@@ -56,7 +56,7 @@ namespace Towers
 
             currentCollisionCheckTime = 0f;
 
-            tokenZoneSystem = new TokenZoneSystem(zoneTokenDataScriptableObjects);
+            tokenZoneSystem = new TokenZoneSystem(globalResources.zoneTokenDataScriptableObjects);
 
             eventChannel.OnZoneControllerAdded += RegisterZone;
             eventChannel.OnZoneTypeChanged += tokenZoneSystem.ChangeZoneType;
@@ -143,10 +143,10 @@ namespace Towers
             return obj;
         }
 
-        public void RegisterZone(int zoneId, RoomController zone)
+        public void RegisterZone(ZoneController zone)
         {
-            Debug.Log($"Registering zone {zoneId}");
-            tokenZoneSystem.AddOrUpdateZone(zoneId, ZoneTokenType.None);
+            Debug.Log($"Registering zone [{zone.zoneId}]");
+            tokenZoneSystem.AddOrUpdateZone(zone.zoneId, ZoneTokenType.None);
         }
     }
 

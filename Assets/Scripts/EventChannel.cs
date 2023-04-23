@@ -6,12 +6,12 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "Event Channel", menuName = "Utility/Event Channel", order = 0)]
 public class EventChannel : ScriptableObject
 {
-    public Action<int, RoomController> OnZoneControllerAdded;
+    public Action<ZoneController> OnZoneControllerAdded;
     public Action<int, ZoneTokenType> OnZoneTypeChanged;
 
-    public void AddZoneController(int zoneId, RoomController roomController)
+    public void AddZoneController(ZoneController zone)
     {
-        OnZoneControllerAdded?.Invoke(zoneId, roomController);
+        OnZoneControllerAdded?.Invoke(zone);
     }
 
     public void ChangeZoneType(int zoneId, ZoneTokenType zoneType)

@@ -636,6 +636,7 @@ MonoBehaviour:
   offset: {x: 0, y: 19.2, z: 0}
   levelsControllers: []
   roomsControllers: []
+  globalResources: {fileID: 11400000, guid: 2b3dece895315094aa33d21e35ed98c5, type: 2}
   databaseCleanUpInterval: 6
   startingLevelsNum: 3
   mobTemplate: {fileID: 3078138613014809113, guid: bf62d0815a7c1a049a12b9166531684b, type: 3}
@@ -655,11 +656,6 @@ MonoBehaviour:
   path:
     points: []
   eventChannel: {fileID: 11400000, guid: 4fe282f66a2f0354c97d20ed8d358d58, type: 2}
-  path2:
-    enterPoints: []
-    exitPoints: []
-    currentCapacity: 0
-    heightDistanceThreshold: 3
   runeStorage:
     resizingCapacity: 0
     mobsIds: 
@@ -2235,6 +2231,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mapManager: {fileID: 414924788}
   eventChannel: {fileID: 11400000, guid: 4fe282f66a2f0354c97d20ed8d358d58, type: 2}
+  globalResources: {fileID: 11400000, guid: 2b3dece895315094aa33d21e35ed98c5, type: 2}
   idleSpot: {fileID: 145987840}
   projectilePoolSize: 10
   projectileSpeed: 50
@@ -2242,10 +2239,6 @@ MonoBehaviour:
   collisionCheckInterval: 0.1
   towerControllers:
   - {fileID: 1195271429}
-  zoneTokenDataScriptableObjects:
-  - {fileID: 11400000, guid: f76c54379448a494695304b34f5212d8, type: 2}
-  - {fileID: 11400000, guid: c9d8f57c855ba1044b29755a9eb238ca, type: 2}
-  - {fileID: 11400000, guid: 2fd101b5b0248b94995386bc1fc34e61, type: 2}
   projectileTemplate: {fileID: 1363680966}
   currentCollisionCheckTime: 0
   projectilesSystem:

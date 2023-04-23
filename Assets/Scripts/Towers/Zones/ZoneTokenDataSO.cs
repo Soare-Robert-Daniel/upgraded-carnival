@@ -6,9 +6,17 @@ namespace Towers.Zones
     public class ZoneTokenDataScriptableObject : ScriptableObject
     {
         public ZoneTokenType zoneTokenType;
-        public DamageTrigger damageTrigger;
+
+        public Trigger trigger;
+
+        public float baseTickInterval;
 
         public TokenRankData[] ranks;
         public TokenTransformationScriptableObject[] transformations;
+
+        [Header("Resources")]
+        public TowerPriceScriptableObject price;
+
+        public TowerResourcesScriptableObject resourcesScriptableObject;
     }
 }
