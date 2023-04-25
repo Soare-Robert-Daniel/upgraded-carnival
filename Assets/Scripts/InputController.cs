@@ -52,7 +52,7 @@ public class InputController : MonoBehaviour
         if (!hit.collider.CompareTag("ZoneTowerOverlay")) return;
 
         var id = hit.collider.transform.parent.gameObject.GetComponent<ZoneController>().zoneId;
-        // Debug.Log($"Found a room {id}");
+        Debug.Log($"=> Found a room {id}");
         manager.ChangeSelectedZoneWithEvent(id);
     }
 

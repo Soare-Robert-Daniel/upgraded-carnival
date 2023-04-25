@@ -1,4 +1,5 @@
-﻿using Map;
+﻿using System;
+using Map;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -43,23 +44,32 @@ namespace UI
 
         public void InitUI()
         {
-            foreach (var (zoneTokenType, res) in manager.globalResources.GetZonesResources())
+            try
             {
-                var btnElem = roomBtnTemplate.CloneTree();
-
-                var btn = btnElem.Q<Button>("BuyRoomBtn");
-                var roomPrice = btnElem.Q<Label>("RoomPrice");
-
-                btn.text = $"Buy {res.resourcesScriptableObject.label}";
-                btn.clicked += () =>
+                foreach (var (zoneTokenType, res) in manager.globalResources.GetZonesResources())
                 {
-                    manager.TryBuyZoneForSelectedZone(zoneTokenType);
-                };
+                    var btnElem = roomBtnTemplate.CloneTree();
 
-                roomPrice.text = $"{res.price.value}";
+                    var btn = btnElem.Q<Button>("BuyRoomBtn");
+                    var roomPrice = btnElem.Q<Label>("RoomPrice");
 
-                mainContainer.Add(btnElem);
+                    btn.text = $"Buy {res.resourcesScriptableObject.label}";
+                    btn.clicked += () =>
+                    {
+                        manager.TryBuyZoneForSelectedZone(zoneTokenType);
+                    };
+
+                    roomPrice.text = $"{res.price.value}";
+
+                    mainContainer.Add(btnElem);
+                }
             }
+            catch (Exception e)
+            {
+                Debug.Log("Error while init UI");
+                Debug.LogException(e);
+            }
+
 
             manager.OnSelectedRoomChange += roomId => UpdateSelectedRoom($"{roomId}");
             container.Q<Button>("CloseBtn").clicked += CloseMenu;

@@ -110,6 +110,8 @@ namespace Map
         public EconomyController EconomyController => economyController;
         public MobsController MobsController => mobsController;
 
+        public List<ZoneController> LevelsControllers => levelsControllers;
+
         private void Awake()
         {
             mobGenID = 0;
@@ -427,24 +429,6 @@ namespace Map
             eventChannel.AddZoneController(zone);
         }
 
-        private void RegisterRooms(List<RoomController> rooms)
-        {
-            // Might add more things when registering rooms (like sound effects).
-            foreach (var room in rooms)
-            {
-                RegisterRoom(room);
-            }
-        }
-
-        private void RegisterRoom(RoomController room)
-        {
-            room.ID = GenRoomID();
-            room.MapManager = this;
-
-            roomsControllers.Add(room);
-            room.UpdateRoomName();
-        }
-
         private int GenRoomID()
         {
             var id = roomGenID;
@@ -452,27 +436,11 @@ namespace Map
             return id;
         }
 
-        private bool IsSelectedRoomValid()
-        {
-            return 0 <= selectedRoomId && selectedRoomId < roomsControllers.Count;
-        }
-
         private void ChangeZoneTypeForSelectedZone(ZoneTokenType zoneType)
         {
-
+            levelsControllers[selectedRoomId].ChangeZoneVisuals(globalResources.GetZonesResources()[zoneType]);
             eventChannel.ChangeZoneType(selectedRoomId, zoneType);
-        }
-
-        private void ChangeRoomTypeForSelectedRoom(RoomType roomType)
-        {
-            roomsControllers[selectedRoomId].RoomSettings.LoadFromModel(roomTypeToModels[roomType]);
-            roomsControllers[selectedRoomId].UpdateVisual(roomTypeToModels[roomType]);
-
-            roomsSystem.SetType(selectedRoomId, roomType);
-            roomsSystem.SetAttackTimeInterval(selectedRoomId, roomTypeToModels[roomType].fireRate);
-            roomsSystem.ChangeRuneHandler(selectedRoomId, new RunesHandlerForRoom(roomTypeToModels[roomType]));
-
-            OnZoneTypeChanged?.Invoke(selectedRoomId, ZoneTokenType.Damage);
+            Debug.Log($"Changing zone type for {selectedRoomId} to {zoneType}");
         }
 
         public void TryBuyZoneForSelectedZone(ZoneTokenType zoneTokenType)
@@ -605,6 +573,18 @@ namespace Map
             // }
             //
             // roomsControllers[zoneId].Select();
+            SelectedRoomId = zoneId;
+            foreach (var levelsController in levelsControllers)
+            {
+                if (levelsController.zoneId == zoneId)
+                {
+                    levelsController.MarkAsSelected();
+                }
+                else
+                {
+                    levelsController.MarkAsUnselected();
+                }
+            }
             OnSelectedRoomChange?.Invoke(zoneId);
         }
 

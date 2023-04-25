@@ -21,6 +21,7 @@ namespace Towers
         [SerializeField] private float projectileSpeed;
         [SerializeField] private float projectileExpireTime;
         [SerializeField] private float collisionCheckInterval;
+        [SerializeField] private float zoneAttackInterval;
         [SerializeField] private List<TowerController> towerControllers;
 
         [Header("Templates")]
@@ -28,6 +29,8 @@ namespace Towers
 
         [Header("Internal")]
         [SerializeField] private float currentCollisionCheckTime;
+
+        [SerializeField] private float currentZoneAttackTime;
 
         [Header("Systems")]
         [SerializeField] private ProjectilesSystem projectilesSystem;
@@ -55,17 +58,22 @@ namespace Towers
             attacksQueue = new Queue<(Projectile, List<Mob>)>();
 
             currentCollisionCheckTime = 0f;
+            currentZoneAttackTime = 0f;
 
             tokenZoneSystem = new TokenZoneSystem(globalResources.zoneTokenDataScriptableObjects);
 
             eventChannel.OnZoneControllerAdded += RegisterZone;
             eventChannel.OnZoneTypeChanged += tokenZoneSystem.ChangeZoneType;
+            eventChannel.OnMobEliminated += tokenZoneSystem.RemoveMobTokens;
         }
 
         private void Update()
         {
             var deltaTime = Time.deltaTime;
+
+            // Update timers
             currentCollisionCheckTime += deltaTime;
+            currentZoneAttackTime += deltaTime;
 
             projectilesSystem.Update(deltaTime);
             towerSystem.Update(deltaTime);
@@ -73,7 +81,56 @@ namespace Towers
 
         private void LateUpdate()
         {
-            // Check collisions
+            // Check zone collisions and update tokens
+            if (currentZoneAttackTime >= zoneAttackInterval)
+            {
+                var tokenDataSO = globalResources.GetZonesResources();
+                var mobs = mapManager.MobsController.Mobs;
+
+                currentZoneAttackTime = 0f;
+                foreach (var zoneController in mapManager.LevelsControllers)
+                {
+                    zoneController.CheckColliders();
+                    foreach (var mobId in zoneController.mobsInZone)
+                    {
+                        tokenZoneSystem.AddOrUpdateTokens(mobId, zoneController.zoneId);
+
+                        // Apply timer effects
+                        var hasTokens = tokenZoneSystem.TryGetMobTokens(mobId, out var tokens);
+                        if (hasTokens)
+                        {
+                            var damage = 0f;
+                            var slow = 0f;
+
+                            foreach (var token in tokens)
+                            {
+                                var zoneTokenDataScriptableObject = tokenDataSO[token.zoneTokenType];
+                                if (zoneTokenDataScriptableObject.trigger == Trigger.TimerTick)
+                                {
+                                    if (zoneTokenDataScriptableObject.TryGetRankData(token.rank, out var rankData))
+                                    {
+                                        damage += rankData.damage;
+                                        slow += rankData.slow;
+                                    }
+                                }
+                            }
+
+                            if (mobs.TryGetValue(mobId, out var mob))
+                            {
+                                // TODO: Investigate why this is not working correctly. There seams to be a delay.
+                                // Also slow is 1 for testing purpose.
+                                mob.Health -= damage;
+                                mob.Slow = slow;
+                                mob.UpdateSpeed();
+                            }
+                        }
+                    }
+                }
+
+
+            }
+
+            // Check projectile collisions and collect attacks
             if (currentCollisionCheckTime >= collisionCheckInterval)
             {
                 currentCollisionCheckTime = 0f;
@@ -97,21 +154,49 @@ namespace Towers
                 }
             }
 
-            // Process attacks
-            while (attacksQueue.Count > 0)
+            if (attacksQueue.Count > 0)
             {
-                var (projectile, mobs) = attacksQueue.Dequeue();
-                foreach (var mob in mobs)
+                var tokenDataSO = globalResources.GetZonesResources();
+                // Process attacks
+                while (attacksQueue.Count > 0)
                 {
-                    mob.Health -= 10f;
-                    mapManager.MobsController.MarkToVisualUpdate(mob.id);
+                    var (projectile, mobs) = attacksQueue.Dequeue();
+                    foreach (var mob in mobs)
+                    {
+                        var damage = 10f;
+
+                        var hasTokens = tokenZoneSystem.TryGetMobTokens(mob.id, out var tokens);
+
+                        if (hasTokens)
+                        {
+                            foreach (var zoneToken in tokens)
+                            {
+                                if (
+                                    tokenDataSO.TryGetValue(zoneToken.zoneTokenType, out var tokenData) &&
+                                    tokenData.trigger == Trigger.TowerHit
+                                )
+                                {
+                                    if (tokenData.TryGetRankData(zoneToken.rank, out var rankData))
+                                    {
+                                        damage += rankData.damage;
+                                    }
+                                }
+                            }
+                        }
+
+                        mob.Health -= damage;
+                        Debug.Log($"Mob <{mob.id}> took {damage} damage");
+                        mapManager.MobsController.MarkToVisualUpdate(mob.id);
+                    }
                 }
             }
+
 
             // Remove destroyed projectiles
             projectilesSystem.RemoveProjectiles();
 
 
+            // Create new projectiles
             foreach (var tower in towerSystem.Towers.Where(tower => tower.canFire && tower.readyToFire))
             {
                 if (!projectilesSystem.HasFreeProjectile()) continue;

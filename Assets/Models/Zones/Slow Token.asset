@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Slow Token
   m_EditorClassIdentifier: 
   zoneTokenType: 2
-  trigger: 0
+  trigger: 1
   baseTickInterval: 0
   ranks:
   - {fileID: 11400000, guid: f4f899291323e54449d1ab69237a566a, type: 2}

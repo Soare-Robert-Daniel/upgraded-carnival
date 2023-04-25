@@ -19,7 +19,7 @@ namespace Towers.Zones
     }
 
     [Serializable]
-    public struct ZoneToken
+    public class ZoneToken : ICloneable
     {
         [Header("Identifiers")]
         public int id;
@@ -33,6 +33,23 @@ namespace Towers.Zones
 
         [Header("Duration")]
         public float remainingDuration;
+
+        public object Clone()
+        {
+            return new ZoneToken
+            {
+                id = id,
+                zoneId = zoneId,
+                zoneTokenType = zoneTokenType,
+                rank = rank,
+                remainingDuration = remainingDuration
+            };
+        }
+
+        public override string ToString()
+        {
+            return $"<ZoneToken: id={id}, zoneId={zoneId}, zoneTokenType={zoneTokenType}, rank={rank}, remainingDuration={remainingDuration}>";
+        }
     }
 
     // Create a builder class for ZoneToken
@@ -77,7 +94,7 @@ namespace Towers.Zones
 
         public ZoneToken Build()
         {
-            return zoneToken;
+            return (ZoneToken)zoneToken.Clone();
         }
     }
 }

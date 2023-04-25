@@ -7,7 +7,7 @@ namespace Towers
     {
         public string label;
 
-        [Header("Textures")]
-        public Texture2D mainTexture;
+        [Header("Sprites")]
+        public Sprite mainSprite;
     }
 }

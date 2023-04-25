@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Freeze Zone Price
   m_EditorClassIdentifier: 
   resource: {fileID: 0}
-  value: 150
+  value: 35

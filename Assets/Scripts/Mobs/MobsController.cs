@@ -5,6 +5,7 @@ namespace Mobs
 {
     public class MobsController : MonoBehaviour
     {
+        [SerializeField] private EventChannel eventChannel;
         [SerializeField] private List<Mob> mobsList;
 
         [SerializeField] private Vector3 targetPosition;
@@ -114,6 +115,7 @@ namespace Mobs
             freeControllersIds.Push(mob.controllerId);
             mobControllers[mob.controllerId].transform.position = idlePosition;
             mobs.Remove(mob.id);
+            eventChannel.EliminateMob(mob.id);
         }
 
         public Vector3 GetMobControllerPosition(int controllerId)

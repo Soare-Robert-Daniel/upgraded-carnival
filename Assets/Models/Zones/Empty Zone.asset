@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6c6beeaf81bb4917b851ab6fdd8306dd, type: 3}
-  m_Name: Freeze Token
+  m_Name: Empty Zone
   m_EditorClassIdentifier: 
-  zoneTokenType: 4
-  trigger: 1
-  baseTickInterval: 0
+  zoneTokenType: 0
+  trigger: 0
+  baseTickInterval: 9999
   ranks:
-  - {fileID: 11400000, guid: b9feba18ee2850043b374e391dafae91, type: 2}
+  - {fileID: 11400000, guid: b9b53d4217fdaef4695586f328a7eb83, type: 2}
   transformations:
-  - {fileID: 11400000, guid: 126ffc6b0b7ca5949b9f1934d2a2bb4e, type: 2}
-  price: {fileID: 11400000, guid: 8d91183b8f621004d8f53c1252c1236e, type: 2}
-  resourcesScriptableObject: {fileID: 11400000, guid: 1008e687a6daf2b4180efe1a85900df6, type: 2}
+  - {fileID: 11400000, guid: 854cea79e48ebb94c848ac354e57984a, type: 2}
+  price: {fileID: 11400000, guid: 85e5f97f7596558478b85d23f281ec42, type: 2}
+  resourcesScriptableObject: {fileID: 11400000, guid: 184b682fe57032a4191b8844ef050336, type: 2}

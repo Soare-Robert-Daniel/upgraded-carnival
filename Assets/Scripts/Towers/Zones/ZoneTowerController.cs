@@ -1,26 +1,32 @@
-﻿using UnityEngine;
+﻿using TMPro;
+using UnityEngine;
 
 namespace Towers.Zones
 {
     public class ZoneTowerController : MonoBehaviour
     {
         [SerializeField] private SpriteRenderer spriteRenderer;
+        [SerializeField] private TextMeshPro towerName;
+        [SerializeField] private GameObject highlight;
 
-        public void SetColor(Color color)
+        private void Awake()
         {
-            spriteRenderer.color = color;
-        }
-
-        public void SetAlpha(float alpha)
-        {
-            var color = spriteRenderer.color;
-            color.a = alpha;
-            spriteRenderer.color = color;
+            SetHighlight(false);
         }
 
         public void SetSprite(Sprite sprite)
         {
             spriteRenderer.sprite = sprite;
+        }
+
+        public void SetName(string label)
+        {
+            towerName.text = label;
+        }
+
+        public void SetHighlight(bool value)
+        {
+            highlight.SetActive(value);
         }
     }
 }

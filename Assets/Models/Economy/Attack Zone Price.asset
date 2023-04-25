@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: Attack Zone Price
   m_EditorClassIdentifier: 
   resource: {fileID: 11400000, guid: ad71590bd405f754cb1f97a88304bacf, type: 2}
-  value: 40
+  value: 20

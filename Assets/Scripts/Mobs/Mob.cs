@@ -58,6 +58,7 @@ namespace Mobs
         public void UpdateSpeed()
         {
             speed = baseStats.baseSpeed * (1f - slow);
+            Debug.Log($"Speed: {speed} | Slow: {slow} | BaseSpeed: {baseStats.baseSpeed}");
         }
 
         public void ResetAll()

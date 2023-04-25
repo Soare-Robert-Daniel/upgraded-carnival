@@ -731,6 +731,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2475c4da7d4841c2bc089ac7c39e84c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  eventChannel: {fileID: 11400000, guid: 4fe282f66a2f0354c97d20ed8d358d58, type: 2}
   mobsList: []
   targetPosition: {x: -11.3, y: -27.9, z: -1.1754807}
   idlePosition: {x: -80, y: 30, z: 0}
@@ -2234,13 +2235,15 @@ MonoBehaviour:
   globalResources: {fileID: 11400000, guid: 2b3dece895315094aa33d21e35ed98c5, type: 2}
   idleSpot: {fileID: 145987840}
   projectilePoolSize: 10
-  projectileSpeed: 50
-  projectileExpireTime: 3
+  projectileSpeed: 5
+  projectileExpireTime: 5
   collisionCheckInterval: 0.1
+  zoneAttackInterval: 2
   towerControllers:
   - {fileID: 1195271429}
   projectileTemplate: {fileID: 1363680966}
   currentCollisionCheckTime: 0
+  currentZoneAttackTime: 0
   projectilesSystem:
     projectileId: 0
     idlePosition: {x: -110.5, y: -40.4, z: 0}

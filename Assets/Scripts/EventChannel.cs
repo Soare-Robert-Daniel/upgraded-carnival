@@ -6,6 +6,7 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "Event Channel", menuName = "Utility/Event Channel", order = 0)]
 public class EventChannel : ScriptableObject
 {
+    public Action<int> OnMobEliminated;
     public Action<ZoneController> OnZoneControllerAdded;
     public Action<int, ZoneTokenType> OnZoneTypeChanged;
 
@@ -17,5 +18,10 @@ public class EventChannel : ScriptableObject
     public void ChangeZoneType(int zoneId, ZoneTokenType zoneType)
     {
         OnZoneTypeChanged?.Invoke(zoneId, zoneType);
+    }
+
+    public void EliminateMob(int mobId)
+    {
+        OnMobEliminated?.Invoke(mobId);
     }
 }

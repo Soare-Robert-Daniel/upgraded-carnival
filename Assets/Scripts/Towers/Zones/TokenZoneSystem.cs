@@ -7,6 +7,7 @@ namespace Towers.Zones
     public class TokenZoneSystem
     {
         private Dictionary<int, List<ZoneToken>> mobsTokens;
+        private int nextTokenId;
         private Dictionary<int, ZoneTokenType> zones;
         private Dictionary<ZoneTokenType, TokenData> zoneTokenData;
 
@@ -15,6 +16,7 @@ namespace Towers.Zones
             zoneTokenData = new Dictionary<ZoneTokenType, TokenData>();
             mobsTokens = new Dictionary<int, List<ZoneToken>>();
             zones = new Dictionary<int, ZoneTokenType>();
+            nextTokenId = 0;
         }
 
         public TokenZoneSystem(List<ZoneTokenDataScriptableObject> zoneTokenDataScriptableObjects)
@@ -28,6 +30,40 @@ namespace Towers.Zones
             }
         }
 
+        public Dictionary<int, List<ZoneToken>> MobsTokens => mobsTokens;
+
+        public void AddOrUpdateTokens(int mobId, int zoneId)
+        {
+            if (!mobsTokens.ContainsKey(mobId))
+            {
+                mobsTokens.Add(mobId, new List<ZoneToken>());
+            }
+
+            if (!zones.ContainsKey(zoneId))
+            {
+                return;
+            }
+
+            var mobTokens = mobsTokens[mobId];
+            var zoneType = zones[zoneId];
+
+            // TODO: Might be better to have a default token type
+            // if (zoneType == ZoneTokenType.None)
+            //     return;
+
+            var tokensToAddBuilders = zoneTokenData[zoneType].Transform(mobTokens);
+
+            foreach (var updatedToken in tokensToAddBuilders
+                         .Select(tokenBuilder =>
+                             tokenBuilder
+                                 .SetId(GenerateTokenId())
+                                 .SetZoneId(zoneId)
+                                 .Build()))
+            {
+                AddOrUpdateToken(mobId, updatedToken);
+            }
+        }
+
         public void AddOrUpdateToken(int mobId, ZoneToken token)
         {
             if (!mobsTokens.ContainsKey(mobId))
@@ -38,19 +74,25 @@ namespace Towers.Zones
             var mobTokens = mobsTokens[mobId];
 
             var existingToken = mobTokens.FirstOrDefault(t => t.zoneTokenType == token.zoneTokenType);
-            if (existingToken.id == 0)
+
+            if (existingToken == null)
             {
                 mobTokens.Add(token);
+                Debug.Log($"Adding token <{token.id}> to mob {mobId}. Rank: {token.rank}, duration: {token.remainingDuration}");
             }
             else
             {
                 existingToken.rank += token.rank;
                 existingToken.remainingDuration = token.remainingDuration;
+
+                Debug.Log(
+                    $"Updating token <{token.id}> to mob {mobId}. New rank: {existingToken.rank}, new duration: {existingToken.remainingDuration} for id <{existingToken.id}>");
             }
         }
 
         public void AddOrUpdateZone(int zoneId, ZoneTokenType zoneType)
         {
+            Debug.Log($"Adding zone [{zoneId}] with type {zoneType}");
             if (!zones.ContainsKey(zoneId))
             {
                 zones.Add(zoneId, zoneType);
@@ -90,7 +132,25 @@ namespace Towers.Zones
 
         public void RemoveMobTokens(int mobId)
         {
+            if (!mobsTokens.ContainsKey(mobId))
+            {
+                return;
+            }
+
+            Debug.Log(
+                $"Removing tokens for mob {mobId}. Tokens count: {mobsTokens[mobId].Count}. Printing tokens: {string.Join(", ", mobsTokens[mobId])}");
             mobsTokens.Remove(mobId);
+        }
+
+        public int GenerateTokenId()
+        {
+            nextTokenId = (nextTokenId + 1) % int.MaxValue;
+            return nextTokenId;
+        }
+
+        public bool TryGetMobTokens(int mobId, out List<ZoneToken> tokens)
+        {
+            return mobsTokens.TryGetValue(mobId, out tokens);
         }
 
         public class TokenData
