@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Towers.Zones
 {
-    [CreateAssetMenu(fileName = "Zone Token Data", menuName = "Zone/Create new token", order = 0)]
+    [CreateAssetMenu(fileName = "Zone Token Data", menuName = "Zone/Create new", order = 0)]
     public class ZoneTokenDataScriptableObject : ScriptableObject
     {
         public ZoneTokenType zoneTokenType;
@@ -20,6 +20,7 @@ namespace Towers.Zones
         public TowerPriceScriptableObject price;
 
         public TowerResourcesScriptableObject resourcesScriptableObject;
+        public ZoneResourcesScriptableObject zoneResourcesScriptableObject;
 
         private int maxRank;
         private Dictionary<int, TokenRankData> ranksDictionary;

@@ -137,7 +137,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  - {fileID: 2100000, guid: 444ccd93fbe2edf49820830f7bc21b9e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -181,7 +181,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae692568cc1a4937a3e9af7c877b919b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spriteRenderer: {fileID: 0}
+  spriteRenderer: {fileID: 1385841937193799549}
+  material: {fileID: 2100000, guid: 444ccd93fbe2edf49820830f7bc21b9e, type: 2}
 --- !u!1 &1875622054042186032
 GameObject:
   m_ObjectHideFlags: 0
@@ -604,7 +605,7 @@ GameObject:
   - component: {fileID: 6055563760028332251}
   - component: {fileID: 4035181373092746216}
   m_Layer: 0
-  m_Name: OpenTowerZone
+  m_Name: OpenTowerZoneCollider
   m_TagString: ZoneTowerOverlay
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -681,7 +682,7 @@ GameObject:
   - component: {fileID: 814493741689566330}
   - component: {fileID: 887856302950388729}
   m_Layer: 0
-  m_Name: AttackZone
+  m_Name: AttackZoneCollider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -2,7 +2,7 @@
 
 namespace Towers.Zones
 {
-    [CreateAssetMenu(fileName = "Token Rank Data", menuName = "Zone/Create new token rank", order = 0)]
+    [CreateAssetMenu(fileName = "Token Rank Data", menuName = "Zone/Create new rank", order = 0)]
     public class TokenRankData : ScriptableObject
     {
         public int rank;

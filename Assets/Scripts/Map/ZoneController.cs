@@ -31,6 +31,7 @@ namespace Map
 
             zoneTowerController.SetSprite(zoneTowerTexture);
             zoneTowerController.SetName(zoneTowerName);
+            zoneAreaController.UpdateVisuals(zoneTokenData.zoneResourcesScriptableObject);
         }
 
         public void CheckColliders()

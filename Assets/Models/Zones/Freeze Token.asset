@@ -21,3 +21,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 126ffc6b0b7ca5949b9f1934d2a2bb4e, type: 2}
   price: {fileID: 11400000, guid: 8d91183b8f621004d8f53c1252c1236e, type: 2}
   resourcesScriptableObject: {fileID: 11400000, guid: 1008e687a6daf2b4180efe1a85900df6, type: 2}
+  zoneResourcesScriptableObject: {fileID: 11400000, guid: d76317e4400841649a07570fb7c4d7f6, type: 2}

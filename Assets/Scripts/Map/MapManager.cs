@@ -438,7 +438,8 @@ namespace Map
 
         private void ChangeZoneTypeForSelectedZone(ZoneTokenType zoneType)
         {
-            levelsControllers[selectedRoomId].ChangeZoneVisuals(globalResources.GetZonesResources()[zoneType]);
+            var zoneResources = globalResources.GetZonesResources()[zoneType];
+            levelsControllers[selectedRoomId].ChangeZoneVisuals(zoneResources);
             eventChannel.ChangeZoneType(selectedRoomId, zoneType);
             Debug.Log($"Changing zone type for {selectedRoomId} to {zoneType}");
         }

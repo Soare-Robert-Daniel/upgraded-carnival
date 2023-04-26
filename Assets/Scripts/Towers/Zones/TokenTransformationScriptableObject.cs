@@ -10,7 +10,7 @@ namespace Towers.Zones
         public ZoneTokenType tokenType;
     }
 
-    [CreateAssetMenu(fileName = "Token Transformation", menuName = "Zone/Create new token transformation", order = 0)]
+    [CreateAssetMenu(fileName = "Token Transformation", menuName = "Zone/Create new transformation", order = 0)]
     public class TokenTransformationScriptableObject : ScriptableObject
     {
         public RankTypePair[] from;
