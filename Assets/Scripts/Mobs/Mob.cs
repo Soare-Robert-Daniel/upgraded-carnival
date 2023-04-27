@@ -1,23 +1,27 @@
-﻿using UnityEngine;
+﻿using System;
+using Economy;
+using UnityEngine;
 
 namespace Mobs
 {
-    [System.Serializable]
+    [Serializable]
     public struct BaseStats
     {
         public float baseSpeed;
         public float baseHealth;
     }
 
-    [System.Serializable]
-    public class Mob
+    [Serializable]
+    public class Mob : ICloneable
     {
         public int id;
         public int controllerId;
 
         public Vector3 position;
+        public Bounty bounty;
 
         public readonly BaseStats baseStats;
+
         private float health;
         private float slow;
         private float speed;
@@ -54,6 +58,19 @@ namespace Mobs
         }
 
         public float HealthPercent => health / baseStats.baseHealth;
+        public object Clone()
+        {
+            return new Mob(baseStats)
+            {
+                id = id,
+                controllerId = controllerId,
+                position = position,
+                bounty = bounty,
+                health = health,
+                slow = slow,
+                speed = speed
+            };
+        }
 
         public void UpdateSpeed()
         {

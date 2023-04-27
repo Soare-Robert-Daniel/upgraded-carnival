@@ -7,6 +7,7 @@ using UnityEngine;
 public class EventChannel : ScriptableObject
 {
     public Action<int> OnMobEliminated;
+    public Action<int> OnMobReachedEnd;
     public Action<ZoneController> OnZoneControllerAdded;
     public Action<int, ZoneTokenType> OnZoneTypeChanged;
 
@@ -23,5 +24,10 @@ public class EventChannel : ScriptableObject
     public void EliminateMob(int mobId)
     {
         OnMobEliminated?.Invoke(mobId);
+    }
+
+    public void MobReachedEnd(int mobId)
+    {
+        OnMobReachedEnd?.Invoke(mobId);
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using GameEntities;
+using Mobs;
 using UnityEngine;
 
 namespace Map.Components
@@ -9,7 +9,7 @@ namespace Map.Components
     [Serializable]
     public class MobsTypePair
     {
-        public MobClassType mobClass;
+        public MobDataScriptableObject mobDataScriptableObject;
         public int mobsNumber;
     }
 

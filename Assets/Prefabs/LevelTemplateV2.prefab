@@ -182,7 +182,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spriteRenderer: {fileID: 1385841937193799549}
-  material: {fileID: 2100000, guid: 444ccd93fbe2edf49820830f7bc21b9e, type: 2}
 --- !u!1 &1875622054042186032
 GameObject:
   m_ObjectHideFlags: 0
@@ -735,7 +734,7 @@ BoxCollider2D:
   m_IsTrigger: 0
   m_UsedByEffector: 0
   m_UsedByComposite: 0
-  m_Offset: {x: -2.4856415, y: -0.17066383}
+  m_Offset: {x: -2.4856415, y: -1.1014767}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -746,7 +745,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 64.03584, y: 18.649197}
+  m_Size: {x: 64.03584, y: 13.87373}
   m_EdgeRadius: 0
 --- !u!1001 &1832761422751715482
 PrefabInstance:
@@ -762,7 +761,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1442393835657327056, guid: 40bff264376fe4e4c8faf907715a31de, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1442393835657327057, guid: 40bff264376fe4e4c8faf907715a31de, type: 3}
       propertyPath: m_RootOrder

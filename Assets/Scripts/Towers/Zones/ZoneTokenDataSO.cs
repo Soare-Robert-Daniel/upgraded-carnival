@@ -49,6 +49,7 @@ namespace Towers.Zones
         public bool TryGetRankData(int rank, out TokenRankData rankData)
         {
             var r = Mathf.Min(rank, GetMaxRank());
+            Debug.Log($"Rank: {r}");
             return GetRanksDictionary().TryGetValue(r, out rankData);
         }
     }

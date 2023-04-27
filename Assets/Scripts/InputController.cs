@@ -18,17 +18,12 @@ public class InputController : MonoBehaviour
 
     private void Start()
     {
-        manager.OnInitUI += Init;
+        manager.OnZoneControllerNumberChanged += ManagerOnOnLevelUpdated;
     }
 
-    private void Init()
+    private void ManagerOnOnLevelUpdated(int level)
     {
-        manager.OnLevelUpdated += ManagerOnOnLevelUpdated;
-        cameraUpperLimit = baseUpperLimit + increaseUpperLimitDistance;
-    }
-
-    private void ManagerOnOnLevelUpdated(int level, float value)
-    {
+        Debug.Log($"[INPUT][CAMERA] Camera upper limit updated to {baseUpperLimit + level * increaseUpperLimitDistance}");
         cameraUpperLimit = baseUpperLimit + level * increaseUpperLimitDistance;
     }
 

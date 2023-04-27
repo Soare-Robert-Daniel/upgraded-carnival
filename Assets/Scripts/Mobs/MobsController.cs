@@ -34,6 +34,8 @@ namespace Mobs
             mobs = new Dictionary<int, Mob>();
             updateVisualsIds = new Stack<int>();
             controllersIdCounter = 0;
+
+            eventChannel.OnMobReachedEnd += RemoveMobById;
         }
 
         public void Update()
@@ -69,12 +71,20 @@ namespace Mobs
             return freeControllersIds.Count > 0;
         }
 
-        public void SpawnMob(Mob mob)
+        public void SpawnMob(Mob mob, MobDataScriptableObject mobDataScriptableObject)
         {
             var controllerId = freeControllersIds.Pop();
+
+            // Get controller
+            if (!mobControllers.TryGetValue(controllerId, out var controller)) return;
+
+            controller.SetMobId(mob.id);
+            controller.UpdateHealthBar(1);
+            controller.UpdateVisuals(mobDataScriptableObject.mobResourcesScriptableObject);
             mob.controllerId = controllerId;
             mobsList.Add(mob);
             mobs.Add(mob.id, mob);
+            Debug.Log($"[MOB][SPAWN] Spawned mob {mob.id} with controller {mob.controllerId}");
         }
 
         public void MarkToVisualUpdate(int mobId)
@@ -106,6 +116,14 @@ namespace Mobs
                 {
                     RemoveMob(mob);
                 }
+            }
+        }
+
+        public void RemoveMobById(int mobId)
+        {
+            if (mobs.TryGetValue(mobId, out var mob))
+            {
+                RemoveMob(mob);
             }
         }
 

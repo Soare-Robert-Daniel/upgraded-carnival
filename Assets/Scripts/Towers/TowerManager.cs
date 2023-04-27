@@ -22,6 +22,7 @@ namespace Towers
         [SerializeField] private float projectileExpireTime;
         [SerializeField] private float collisionCheckInterval;
         [SerializeField] private float zoneAttackInterval;
+        [SerializeField] private float tokenDurationUpdateInterval;
         [SerializeField] private List<TowerController> towerControllers;
 
         [Header("Templates")]
@@ -31,6 +32,7 @@ namespace Towers
         [SerializeField] private float currentCollisionCheckTime;
 
         [SerializeField] private float currentZoneAttackTime;
+        [SerializeField] private float currentTokenDurationUpdateTime;
 
         [Header("Systems")]
         [SerializeField] private ProjectilesSystem projectilesSystem;
@@ -38,7 +40,7 @@ namespace Towers
         [SerializeField] private TowerSystem towerSystem;
 
         private Queue<(Projectile, List<Mob>)> attacksQueue;
-        [SerializeField] private TokenZoneSystem tokenZoneSystem;
+        private TokenZoneSystem tokenZoneSystem;
 
         private void Awake()
         {
@@ -74,6 +76,14 @@ namespace Towers
             // Update timers
             currentCollisionCheckTime += deltaTime;
             currentZoneAttackTime += deltaTime;
+            currentTokenDurationUpdateTime += deltaTime;
+
+            // Update token durations
+            if (currentTokenDurationUpdateTime >= tokenDurationUpdateInterval)
+            {
+                tokenZoneSystem.UpdateTokenDurations(currentTokenDurationUpdateTime);
+                currentTokenDurationUpdateTime = 0f;
+            }
 
             projectilesSystem.Update(deltaTime);
             towerSystem.Update(deltaTime);
@@ -115,14 +125,16 @@ namespace Towers
                                 }
                             }
 
-                            if (mobs.TryGetValue(mobId, out var mob))
-                            {
-                                // TODO: Investigate why this is not working correctly. There seams to be a delay.
-                                // Also slow is 1 for testing purpose.
-                                mob.Health -= damage;
-                                mob.Slow = slow;
-                                mob.UpdateSpeed();
-                            }
+
+                            if (!mobs.TryGetValue(mobId, out var mob)) continue;
+
+                            // TODO: Investigate why this is not working correctly. There seams to be a delay.
+                            // Also slow is 1 for testing purpose.
+                            mob.Health -= damage;
+                            mob.Slow = slow;
+                            mob.UpdateSpeed();
+
+                            Debug.Log($"[ZONE][TIME TICK] Mob <{mobId}> took {damage} damage and slowed by {slow}");
                         }
                     }
                 }
@@ -185,7 +197,7 @@ namespace Towers
                         }
 
                         mob.Health -= damage;
-                        Debug.Log($"Mob <{mob.id}> took {damage} damage");
+                        Debug.Log($"[PROJECTILE][MOB HIT] Mob <{mob.id}> took {damage} damage");
                         mapManager.MobsController.MarkToVisualUpdate(mob.id);
                     }
                 }

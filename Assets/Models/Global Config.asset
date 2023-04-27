@@ -17,4 +17,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: f76c54379448a494695304b34f5212d8, type: 2}
   - {fileID: 11400000, guid: 2fd101b5b0248b94995386bc1fc34e61, type: 2}
   - {fileID: 11400000, guid: c9d8f57c855ba1044b29755a9eb238ca, type: 2}
+  mobDataScriptableObjects:
+  - {fileID: 11400000, guid: dea2d3995fb846549b97a2f3df6f452d, type: 2}
   todo: 

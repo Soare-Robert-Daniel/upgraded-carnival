@@ -16,22 +16,20 @@ MonoBehaviour:
   - fromWave: 0
     mobsNumber: 1
     mobs:
-    - mobClass: 10
+    - mobDataScriptableObject: {fileID: 11400000, guid: dea2d3995fb846549b97a2f3df6f452d, type: 2}
       mobsNumber: 1
   - fromWave: 5
     mobsNumber: 20
     mobs:
-    - mobClass: 10
+    - mobDataScriptableObject: {fileID: 11400000, guid: dea2d3995fb846549b97a2f3df6f452d, type: 2}
       mobsNumber: 10
-    - mobClass: 11
-      mobsNumber: 5
-    - mobClass: 100
-      mobsNumber: 5
   - fromWave: 15
     mobsNumber: 30
     mobs:
-    - mobClass: 10
+    - mobDataScriptableObject: {fileID: 11400000, guid: dea2d3995fb846549b97a2f3df6f452d, type: 2}
       mobsNumber: 30
   - fromWave: 25
     mobsNumber: 50
-    mobs: []
+    mobs:
+    - mobDataScriptableObject: {fileID: 11400000, guid: dea2d3995fb846549b97a2f3df6f452d, type: 2}
+      mobsNumber: 50

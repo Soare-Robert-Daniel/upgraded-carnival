@@ -122,10 +122,8 @@ namespace Towers.Zones
 
         public void ChangeZoneType(int zoneId, ZoneTokenType zoneType)
         {
-            Debug.Log($"Changing zone type to {zoneType} for zone {zoneId}");
             if (zones.ContainsKey(zoneId))
             {
-                Debug.Log($"Zone {zoneId} found");
                 zones[zoneId] = zoneType;
             }
         }
@@ -138,7 +136,7 @@ namespace Towers.Zones
             }
 
             Debug.Log(
-                $"Removing tokens for mob {mobId}. Tokens count: {mobsTokens[mobId].Count}. Printing tokens: {string.Join(", ", mobsTokens[mobId])}");
+                $"[TOKENS][MOB DELETE] Removing tokens for mob {mobId}. Tokens count: {mobsTokens[mobId].Count}. Printing tokens: {string.Join(", ", mobsTokens[mobId])}");
             mobsTokens.Remove(mobId);
         }
 
@@ -151,6 +149,34 @@ namespace Towers.Zones
         public bool TryGetMobTokens(int mobId, out List<ZoneToken> tokens)
         {
             return mobsTokens.TryGetValue(mobId, out tokens);
+        }
+
+        public void UpdateTokenDurations(float currentTokenDurationUpdateTime)
+        {
+            var tokensToRemove = new List<ZoneToken>();
+            foreach (var (mobId, tokens) in mobsTokens)
+            {
+                tokensToRemove.Clear();
+                foreach (var token in tokens)
+                {
+                    token.remainingDuration -= currentTokenDurationUpdateTime;
+                    if (token.remainingDuration <= 0)
+                    {
+                        tokensToRemove.Add(token);
+                    }
+                }
+
+                if (tokensToRemove.Count == 0)
+                {
+                    continue;
+                }
+
+                Debug.Log($"[TOKEN][DELETE]Removing {tokensToRemove.Count} tokens for mob {mobId}");
+                foreach (var tokenToRemove in tokensToRemove)
+                {
+                    tokens.Remove(tokenToRemove);
+                }
+            }
         }
 
         public class TokenData
@@ -178,14 +204,33 @@ namespace Towers.Zones
                     var from = transformation.from;
                     var to = transformation.to;
 
-                    var fromMatches = !(from rankTypePair in @from
-                        let rank = rankTypePair.rank
-                        let type = rankTypePair.tokenType
-                        let currentRank = currentRanks.FirstOrDefault(t => t.zoneTokenType == type)
-                        where currentRank.rank != rank
-                        select rank).Any();
+                    // Check if the current rank list is greater or equal to the max rank of the transformation "from" with the same token type
+                    var canAddTokens = true;
 
-                    if (!fromMatches) continue;
+                    foreach (var rankTypePair in from)
+                    {
+                        var rank = rankTypePair.rank;
+                        var type = rankTypePair.tokenType;
+
+                        var currentRank = currentRanks.FirstOrDefault(t => t.zoneTokenType == type);
+                        if (currentRank == null)
+                        {
+                            canAddTokens = false;
+                            break;
+                        }
+
+                        if (currentRank.rank < rank)
+                        {
+                            canAddTokens = false;
+                            break;
+                        }
+                    }
+
+                    if (!canAddTokens)
+                    {
+                        continue;
+                    }
+
 
                     // If it matches, add new tokens to list
                     tokenBuilders.AddRange(from rankTypePair in to

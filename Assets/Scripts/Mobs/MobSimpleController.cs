@@ -27,5 +27,10 @@ namespace Mobs
         {
             bodySpriteRenderer.sprite = sprite;
         }
+
+        public void UpdateVisuals(MobResourcesScriptableObject mobResourcesScriptableObject)
+        {
+            UpdateBodySprite(mobResourcesScriptableObject.mainSprite);
+        }
     }
 }
