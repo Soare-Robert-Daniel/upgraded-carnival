@@ -402,6 +402,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77a16a10d1de4cd18af78e6c3c982684, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  eventChannel: {fileID: 11400000, guid: 4fe282f66a2f0354c97d20ed8d358d58, type: 2}
   manager: {fileID: 414924788}
   mainCamera: {fileID: 519420031}
   cameraCursor: {fileID: 713435393}
@@ -439,7 +440,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 240465785}
         m_TargetAssemblyTypeName: InputController, Assembly-CSharp
-        m_MethodName: SelectRoom
+        m_MethodName: MouseSelect
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -578,6 +579,7 @@ Transform:
   - {fileID: 855961923}
   - {fileID: 706958868}
   - {fileID: 633272914}
+  - {fileID: 973306397}
   m_Father: {fileID: 0}
   m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -631,6 +633,7 @@ MonoBehaviour:
   waveNumber: 1
   waveTimeInterval: 120
   waveMobSpawnStartOffset: 1.5
+  spawnSpreadDistance: 45
   levelsNum: 0
   currentPricePerLevel: 0
   pricePerLevelMultiplier: 0
@@ -646,7 +649,8 @@ MonoBehaviour:
   mobStartingPoint: {fileID: 800240240}
   economyController: {fileID: 414924789}
   waveMobNumberPerWaveModel: {fileID: 11400000, guid: c6b54adc922de61488db41bdd5f9e827, type: 2}
-  selectedRoomId: 0
+  selectedZoneId: 0
+  selectedMobId: 0
   currentWaveTimer: 0
   currentSpawnTimer: 0
   waveCreator:
@@ -1682,6 +1686,63 @@ MonoBehaviour:
   mapManager: {fileID: 414924788}
   hud: {fileID: 855961924}
   roomMenu: {fileID: 706958870}
+--- !u!1 &973306396
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 973306397}
+  - component: {fileID: 973306398}
+  m_Layer: 0
+  m_Name: Sidebar
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &973306397
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 973306396}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 411444958}
+  m_RootOrder: -1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &973306398
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 973306396}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6858a8ab8003491cb7ff9a0ffcfc2f8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mapManager: {fileID: 414924788}
+  mobsController: {fileID: 466602200}
+  towerManager: {fileID: 1414176260}
+  eventChannel: {fileID: 11400000, guid: 4fe282f66a2f0354c97d20ed8d358d58, type: 2}
+  globalResources: {fileID: 11400000, guid: 2b3dece895315094aa33d21e35ed98c5, type: 2}
+  visibleStore: 0
+  sidebarRoot: {fileID: 855961924}
+  storeItemTemplate: {fileID: 9197481963319205126, guid: 85072ead80463734fb4a101ab14912fb, type: 3}
+  mobTokenTemplate: {fileID: 9197481963319205126, guid: 867d0b98b3d4a944d8e36651a5be16a8, type: 3}
+  updateMobInfoInterval: 0.5
+  itemIdGenerator: 0
+  currentMobInfoUpdateTime: 0
+  currentSelectedMobId: 0
 --- !u!4 &1054339477 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2811519476003989977, guid: 5d183f5f1909c2e489f21ef96f60a7e9, type: 3}
@@ -2316,8 +2377,6 @@ MonoBehaviour:
   collisionCheckInterval: 0.1
   zoneAttackInterval: 2
   tokenDurationUpdateInterval: 0.1
-  towerControllers:
-  - {fileID: 1195271429}
   projectileTemplate: {fileID: 1363680966}
   currentCollisionCheckTime: 0
   currentZoneAttackTime: 0
@@ -2441,6 +2500,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1709254877}
+  - component: {fileID: 1709254878}
   m_Layer: 0
   m_Name: Towers
   m_TagString: Untagged
@@ -2467,6 +2527,24 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 11
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1709254878
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709254876}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54642d58f8924fafa9701dbd54b7a4f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  initialActiveTowers: 2
+  towerManager: {fileID: 1414176260}
+  currentActiveTowers: 0
+  towerControllers:
+  - {fileID: 1195271429}
+  - {fileID: 729091963}
 --- !u!1 &2139522142
 GameObject:
   m_ObjectHideFlags: 0

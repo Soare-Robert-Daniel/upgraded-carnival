@@ -29,12 +29,17 @@ namespace Map
 
     public class MapManager : MonoBehaviour
     {
+
+        public const int NotZoneFound = -1;
+        public const int NoMobFound = -1;
+
         [Header("Wave")]
         [SerializeField] private bool enableWave;
 
         [SerializeField] private int waveNumber;
         [SerializeField] private float waveTimeInterval;
         [SerializeField] private float waveMobSpawnStartOffset;
+        [SerializeField] private float spawnSpreadDistance;
 
         [Header("Levels")]
         [SerializeField] private int levelsNum;
@@ -63,7 +68,9 @@ namespace Map
         [SerializeField] private WaveMobNumberPerWaveModel waveMobNumberPerWaveModel;
 
         [Header("Internals")]
-        [SerializeField] private int selectedRoomId;
+        [SerializeField] private int selectedZoneId;
+
+        [SerializeField] private int selectedMobId;
 
         [SerializeField] private float currentWaveTimer;
 
@@ -120,6 +127,8 @@ namespace Map
             {
                 Debug.Log($"[MAP][OBSERVER] Zone controller added: {zoneController.zoneId}");
             };
+
+            eventChannel.OnSelectedZoneChanged += ChangeSelectedZoneWithEvent;
         }
 
         private void Start()
@@ -172,7 +181,11 @@ namespace Map
                 return false;
 
             var (mob, mobDataScriptableObject) = waveCreator.DequeueMobsToSpawn().First();
-            mob.position = mobStartingPoint.position;
+
+            mob.position = mobStartingPoint.position +
+                           Vector3.left * (spawnSpreadDistance *
+                                           Mathf.Clamp01(UnityEngine.Random.Range(0f, 1f) * UnityEngine.Random.Range(0, 5)));
+
             mobsController.SpawnMob(mob, mobDataScriptableObject);
 
             return true;
@@ -339,14 +352,14 @@ namespace Map
         private void ChangeZoneTypeForSelectedZone(ZoneTokenType zoneType)
         {
             var zoneResources = globalResources.GetZonesResources()[zoneType];
-            levelsControllers[selectedRoomId].ChangeZoneVisuals(zoneResources);
-            eventChannel.ChangeZoneType(selectedRoomId, zoneType);
-            Debug.Log($"[MAP][ZONE] Changing zone type for {selectedRoomId} to {zoneType}");
+            levelsControllers[selectedZoneId].ChangeZoneVisuals(zoneResources);
+            eventChannel.ChangeZoneType(selectedZoneId, zoneType);
+            Debug.Log($"[MAP][ZONE] Changing zone type for {selectedZoneId} to {zoneType}");
         }
 
         public void TryBuyZoneForSelectedZone(ZoneTokenType zoneTokenType)
         {
-            // if (!IsSelectedRoomValid()) return;
+            if (!IsSelectedZoneValid()) return;
             var price = globalResources.GetZonesResources()[zoneTokenType].price.value;
             if (!economyController.CanSpend(Currency.Gold, price)) return;
 
@@ -380,8 +393,8 @@ namespace Map
 
         public int SelectedRoomId
         {
-            get => selectedRoomId;
-            set => selectedRoomId = value;
+            get => selectedZoneId;
+            set => selectedZoneId = value;
         }
 
         public void ChangeSelectedZoneWithEvent(int zoneId)
@@ -411,6 +424,11 @@ namespace Map
                 }
             }
             OnSelectedRoomChange?.Invoke(zoneId);
+        }
+
+        private bool IsSelectedZoneValid()
+        {
+            return selectedZoneId >= 0 && selectedZoneId < levelsControllers.Count;
         }
 
         #endregion

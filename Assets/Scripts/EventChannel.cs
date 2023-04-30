@@ -8,6 +8,8 @@ public class EventChannel : ScriptableObject
 {
     public Action<int> OnMobEliminated;
     public Action<int> OnMobReachedEnd;
+    public Action<int> OnSelectedMobChanged;
+    public Action<int> OnSelectedZoneChanged;
     public Action<ZoneController> OnZoneControllerAdded;
     public Action<int, ZoneTokenType> OnZoneTypeChanged;
 

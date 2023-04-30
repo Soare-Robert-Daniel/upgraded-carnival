@@ -23,7 +23,6 @@ namespace Towers
         [SerializeField] private float collisionCheckInterval;
         [SerializeField] private float zoneAttackInterval;
         [SerializeField] private float tokenDurationUpdateInterval;
-        [SerializeField] private List<TowerController> towerControllers;
 
         [Header("Templates")]
         [SerializeField] private GameObject projectileTemplate;
@@ -42,6 +41,9 @@ namespace Towers
         private Queue<(Projectile, List<Mob>)> attacksQueue;
         private TokenZoneSystem tokenZoneSystem;
 
+        public TowerSystem TowerSystem => towerSystem;
+        public TokenZoneSystem TokenZoneSystem => tokenZoneSystem;
+
         private void Awake()
         {
             projectilesSystem = new ProjectilesSystem(projectilePoolSize, this)
@@ -51,11 +53,6 @@ namespace Towers
             };
 
             towerSystem = new TowerSystem();
-
-            foreach (var towerController in towerControllers)
-            {
-                towerSystem.AddTowerController(towerController);
-            }
 
             attacksQueue = new Queue<(Projectile, List<Mob>)>();
 

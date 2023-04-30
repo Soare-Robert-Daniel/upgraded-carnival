@@ -1,8 +1,10 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements"
          xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements"
          noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:Template name="SidebarItem"
+                 src="project://database/Assets/UI/SidebarItem.uxml?fileID=9197481963319205126&amp;guid=85072ead80463734fb4a101ab14912fb&amp;type=3#SidebarItem"/>
     <ui:VisualElement name="Top"
-                      style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); position: absolute; height: auto; width: 100%; top: 0; left: auto; align-items: flex-start; flex-direction: row; justify-content: center; padding-top: 10px; padding-right: 10px; padding-left: 10px; transform-origin: left top; max-height: 250px;">
+                      style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); position: absolute; height: auto; width: 1518px; top: 0; left: auto; align-items: flex-start; flex-direction: row; justify-content: center; padding-top: 10px; padding-right: 10px; padding-left: 10px; transform-origin: left top; max-height: 250px;">
         <ui:VisualElement name="Right"
                           style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); height: auto; max-width: none;">
             <ui:VisualElement name="PlayerInfo"
@@ -21,9 +23,9 @@
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="Left"
-                          style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: column; align-items: flex-end;">
+                          style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: column; align-items: flex-end; flex-shrink: 0;">
             <ui:VisualElement name="Toolbar"
-                              style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); min-width: auto; min-height: auto; max-width: 500px; flex-direction: row-reverse; width: 100%; align-items: flex-start; height: 17px;">
+                              style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); min-width: auto; min-height: auto; max-width: 1200px; flex-direction: row-reverse; width: auto; align-items: flex-start; height: auto; flex-shrink: 0; max-height: 50px;">
                 <ui:Button text="Settings" display-tooltip-when-elided="true" name="SettingsBtn"
                            style="font-size: 24px; max-width: 150px; -unity-font-style: bold; border-top-left-radius: 20px; border-bottom-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px; background-color: rgb(0, 183, 121); color: rgb(0, 0, 0);"/>
                 <ui:Button text="Pause" display-tooltip-when-elided="true" name="PauseBtn"
@@ -34,26 +36,54 @@
                               name="RemainingHealthLabel"
                               style="font-size: 25px; -unity-font-style: bold; background-color: rgba(0, 0, 0, 0); color: rgb(255, 255, 255);"/>
                 </ui:VisualElement>
+                <ui:VisualElement name="VisualElement"
+                                  style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); height: auto; border-top-left-radius: 0; border-bottom-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; max-height: 50px;">
+                    <ui:VisualElement
+                            style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); flex-direction: row; background-image: url(&apos;project://database/Assets/Sprites/Base_Texture.png?fileID=2800000&amp;guid=9cfdac13194f33e47978453a5dcfbb8e&amp;type=3#Base_Texture&apos;); -unity-background-image-tint-color: rgb(246, 255, 0); padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; border-top-left-radius: 20px; border-bottom-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px;">
+                        <ui:Label tabindex="-1" text="Map (ms):" display-tooltip-when-elided="true" name="Label"
+                                  style="align-self: center; -unity-text-align: upper-center; font-size: 20px; -unity-font-style: bold;"/>
+                        <ui:Label tabindex="-1" text="20" display-tooltip-when-elided="true" name="mapLogicTimeLabel"
+                                  style="width: 30px; align-items: center; align-self: center; -unity-text-align: upper-center; font-size: 20px; -unity-font-style: bold;"/>
+                    </ui:VisualElement>
+                </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); height: 10px;">
                 <ui:Button text="Start Wave" display-tooltip-when-elided="true" name="StartWaveBtn"
                            style="font-size: 30px; border-top-left-radius: 10px; border-bottom-left-radius: 10px; border-top-right-radius: 10px; border-bottom-right-radius: 10px; padding-left: 25px; padding-right: 25px; padding-top: 10px; padding-bottom: 10px;"/>
             </ui:VisualElement>
-            <ui:VisualElement name="VisualElement"
-                              style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); height: auto; border-top-left-radius: 0; border-bottom-left-radius: 0; border-top-right-radius: 0; border-bottom-right-radius: 0; max-height: 50px;">
-                <ui:VisualElement
-                        style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); flex-direction: row; background-image: url(&apos;project://database/Assets/Sprites/Base_Texture.png?fileID=2800000&amp;guid=9cfdac13194f33e47978453a5dcfbb8e&amp;type=3#Base_Texture&apos;); -unity-background-image-tint-color: rgb(246, 255, 0); padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px; border-top-left-radius: 20px; border-bottom-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px;">
-                    <ui:Label tabindex="-1" text="Map (ms):" display-tooltip-when-elided="true" name="Label"
-                              style="align-self: center; -unity-text-align: upper-center; font-size: 20px; -unity-font-style: bold;"/>
-                    <ui:Label tabindex="-1" text="20" display-tooltip-when-elided="true" name="mapLogicTimeLabel"
-                              style="width: 30px; align-items: center; align-self: center; -unity-text-align: upper-center; font-size: 20px; -unity-font-style: bold;"/>
-                </ui:VisualElement>
-            </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>
     <ui:VisualElement name="RoomMenuPanel"
-                      style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); position: absolute; height: auto; width: 100%; top: auto; left: auto; bottom: 0; align-items: center; flex-wrap: wrap; transform-origin: bottom;">
+                      style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); position: absolute; height: auto; width: 100%; top: auto; left: auto; bottom: 0; align-items: center; flex-wrap: wrap; transform-origin: bottom; display: none;">
         <ui:Button text="Select a room" display-tooltip-when-elided="true" name="OpenRoomMenuBtn"
                    style="font-size: 35px; height: auto; width: auto; padding-left: 50px; padding-right: 50px; padding-top: 16px; padding-bottom: 16px; -unity-background-image-tint-color: rgb(229, 100, 25); background-color: rgb(226, 186, 39); -unity-font-style: bold; border-top-left-radius: 20px; border-bottom-left-radius: 0; border-top-right-radius: 20px; border-bottom-right-radius: 0; -unity-text-outline-width: 0;"/>
+    </ui:VisualElement>
+    <ui:VisualElement name="SIdebar"
+                      style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); width: 400px; margin-left: auto; background-image: url(&apos;project://database/Assets/Sprites/Base_Texture.png?fileID=2800000&amp;guid=9cfdac13194f33e47978453a5dcfbb8e&amp;type=3#Base_Texture&apos;); -unity-background-image-tint-color: rgb(113, 113, 113);">
+        <ui:VisualElement name="Stats"
+                          style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); height: auto; max-height: 200px; padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0;">
+            <ui:VisualElement
+                    style="flex-grow: 1; background-color: rgba(0, 0, 0, 0); background-image: url(&apos;project://database/Assets/Sprites/Base_Texture.png?fileID=2800000&amp;guid=9cfdac13194f33e47978453a5dcfbb8e&amp;type=3#Base_Texture&apos;); -unity-background-image-tint-color: rgb(253, 224, 0); padding-left: 5px; padding-right: 5px; padding-top: 5px; padding-bottom: 5px;">
+                <ui:VisualElement name="MobInfoContainer"
+                                  style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); flex-direction: row;">
+                    <ui:Label tabindex="-1" text="Basic Mob" display-tooltip-when-elided="true" name="MobNameLabel"
+                              style="white-space: normal; flex-grow: 1; -unity-font-style: bold; font-size: 18px;"/>
+                </ui:VisualElement>
+                <ui:VisualElement name="MobsTokenContainer" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0);">
+                    <ui:ListView focusable="true" name="MobTokensListView" show-border="false"
+                                 style="flex-grow: 1; flex-shrink: 0;"/>
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:ScrollView scroll-deceleration-rate="0,135" elasticity="0,1" mode="Vertical"
+                       vertical-scroller-visibility="Auto" focusable="false" mouse-wheel-scroll-size="30"
+                       name="StoreContainer"
+                       style="flex-grow: 1; flex-shrink: 0; padding-left: 5px; padding-right: 0; padding-top: 5px; padding-bottom: 5px; max-height: 800px; background-image: url(&apos;project://database/Assets/Sprites/Base_Texture.png?fileID=2800000&amp;guid=9cfdac13194f33e47978453a5dcfbb8e&amp;type=3#Base_Texture&apos;); -unity-background-image-tint-color: rgba(255, 255, 255, 0.64);">
+            <ui:Instance template="SidebarItem" name="SidebarItem" style="display: none;"/>
+        </ui:ScrollView>
+        <ui:Button text="Open Tower Store" display-tooltip-when-elided="true" name="OpenTowerStoreBtn"
+                   style="-unity-font-style: normal; font-size: 20px;"/>
+        <ui:Button text="Open Zone Store" display-tooltip-when-elided="true" name="OpenZoneStoreBtn"
+                   style="font-size: 20px;"/>
     </ui:VisualElement>
 </ui:UXML>

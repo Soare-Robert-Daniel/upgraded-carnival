@@ -1,9 +1,11 @@
 ﻿using Map;
+using Mobs;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class InputController : MonoBehaviour
 {
+    [SerializeField] private EventChannel eventChannel;
     [SerializeField] private MapManager manager;
     [SerializeField] private Camera mainCamera;
     [SerializeField] private Transform cameraCursor;
@@ -27,7 +29,7 @@ public class InputController : MonoBehaviour
         cameraUpperLimit = baseUpperLimit + level * increaseUpperLimitDistance;
     }
 
-    public void SelectRoom(InputAction.CallbackContext context)
+    public void MouseSelect(InputAction.CallbackContext context)
     {
         if (!manager.uiState.CanSelect)
         {
@@ -44,11 +46,19 @@ public class InputController : MonoBehaviour
             return;
         }
 
-        if (!hit.collider.CompareTag("ZoneTowerOverlay")) return;
+        if (hit.collider.CompareTag("ZoneTowerOverlay"))
+        {
+            var id = hit.collider.transform.parent.gameObject.GetComponent<ZoneController>().zoneId;
+            Debug.Log($"=> Found a room {id}");
+            eventChannel.OnSelectedZoneChanged?.Invoke(id);
+        }
 
-        var id = hit.collider.transform.parent.gameObject.GetComponent<ZoneController>().zoneId;
-        Debug.Log($"=> Found a room {id}");
-        manager.ChangeSelectedZoneWithEvent(id);
+        if (hit.collider.CompareTag("Mob"))
+        {
+            var id = hit.collider.gameObject.GetComponent<MobSimpleController>().MobId;
+            Debug.Log($"=> Found a mob {id}");
+            eventChannel.OnSelectedMobChanged?.Invoke(id);
+        }
     }
 
     public void MoveCamera(InputAction.CallbackContext context)

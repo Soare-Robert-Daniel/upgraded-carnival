@@ -48,12 +48,22 @@ namespace Towers
                 projectileBuilder = new ProjectileBuilder()
             };
             towersControllers.Add(id, towerController);
+            AddTower(tower);
+        }
+
+        public void AddTower(Tower tower)
+        {
             towers.Add(tower);
         }
 
         private int GenerateTowerId()
         {
             return nextTowerId++;
+        }
+
+        public void RemoveTower(int id)
+        {
+            towers.Remove(towers.First(tower => tower.id == id));
         }
     }
 

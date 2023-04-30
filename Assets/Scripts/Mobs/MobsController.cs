@@ -16,6 +16,7 @@ namespace Mobs
 
         private Dictionary<int, MobSimpleController> mobControllers;
         private Dictionary<int, Mob> mobs;
+        private Dictionary<int, MobDataScriptableObject> mobsData;
         private Dictionary<int, int> mobsZoneIds;
 
         private Stack<int> updateVisualsIds;
@@ -24,16 +25,19 @@ namespace Mobs
 
         public List<Mob> MobsList => mobsList;
         public Dictionary<int, Mob> Mobs => mobs;
+        public Dictionary<int, MobDataScriptableObject> MobsData => mobsData;
 
         public Dictionary<int, int> MobsZoneIds => mobsZoneIds;
 
         private void Awake()
         {
             mobControllers = new Dictionary<int, MobSimpleController>();
+            mobsZoneIds = new Dictionary<int, int>();
             freeControllersIds = new Stack<int>();
             mobs = new Dictionary<int, Mob>();
             updateVisualsIds = new Stack<int>();
             controllersIdCounter = 0;
+            mobsData = new Dictionary<int, MobDataScriptableObject>();
 
             eventChannel.OnMobReachedEnd += RemoveMobById;
         }
@@ -84,6 +88,7 @@ namespace Mobs
             mob.controllerId = controllerId;
             mobsList.Add(mob);
             mobs.Add(mob.id, mob);
+            mobsData.Add(mob.id, mobDataScriptableObject);
             Debug.Log($"[MOB][SPAWN] Spawned mob {mob.id} with controller {mob.controllerId}");
         }
 
@@ -134,6 +139,7 @@ namespace Mobs
             mobControllers[mob.controllerId].transform.position = idlePosition;
             mobs.Remove(mob.id);
             eventChannel.EliminateMob(mob.id);
+            mobsData.Remove(mob.id);
         }
 
         public Vector3 GetMobControllerPosition(int controllerId)

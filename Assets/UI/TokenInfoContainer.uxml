@@ -1,0 +1,7 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements">
+    <ui:VisualElement name="TokenInfoContainer"
+                      style="flex-grow: 0; background-color: rgba(0, 0, 0, 0); max-width: none; max-height: 22px;">
+        <ui:Label tabindex="-1" text="Label" display-tooltip-when-elided="true" name="TokenInfoLabel"
+                  style="-unity-font-style: normal; font-size: 16px; padding-left: 0; padding-right: 0; padding-top: 0; padding-bottom: 0;"/>
+    </ui:VisualElement>
+</ui:UXML>

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Basic Mob
   m_EditorClassIdentifier: 
   baseStats:
-    baseSpeed: 12
+    baseSpeed: 10
     baseHealth: 350
   bountyDataScriptableObject: {fileID: 11400000, guid: 3658835737cc8624aa54c9167a6ccc4f, type: 2}
   mobResourcesScriptableObject: {fileID: 11400000, guid: 8b8c2860db9de6f4281fe49a0012cd2b, type: 2}

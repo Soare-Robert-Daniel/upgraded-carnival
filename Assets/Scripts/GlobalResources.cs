@@ -15,7 +15,6 @@ public class GlobalResources : ScriptableObject
     [Header("Towers")]
     public string todo;
 
-
     private Dictionary<ZoneTokenType, ZoneTokenDataScriptableObject> zoneTokenDataScriptableObjectsDictionary;
 
     public Dictionary<ZoneTokenType, ZoneTokenDataScriptableObject> GetZonesResources()
