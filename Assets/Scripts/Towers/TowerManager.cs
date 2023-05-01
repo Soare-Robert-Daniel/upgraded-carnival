@@ -34,6 +34,8 @@ namespace Towers
         [SerializeField] private float currentTokenDurationUpdateTime;
 
         [Header("Systems")]
+        [SerializeField] private TowerRowController towerRowController;
+
         [SerializeField] private ProjectilesSystem projectilesSystem;
 
         [SerializeField] private TowerSystem towerSystem;
@@ -43,6 +45,7 @@ namespace Towers
 
         public TowerSystem TowerSystem => towerSystem;
         public TokenZoneSystem TokenZoneSystem => tokenZoneSystem;
+        public TowerRowController TowerRowController => towerRowController;
 
         private void Awake()
         {
@@ -155,6 +158,7 @@ namespace Towers
 
                     var mobs = mapManager.MobsController.Mobs;
 
+                    // TODO: remove mobs at the end of the loop
                     var mobsList = (from mob in mobsHit where mobsHit.Contains(mob) select mobs[mob]).ToList();
 
                     attacksQueue.Enqueue((projectile, mobsList));
@@ -220,7 +224,6 @@ namespace Towers
                 tower.projectileBuilder
                     .WithTargetId(target.id)
                     .WithPosition(startPosition)
-                    .WithSpeed(projectileSpeed)
                     .WithDestination(target.position);
                 var projectile = projectilesSystem.TryAddProjectile(tower.projectileBuilder, out var projectileObj);
                 if (projectile)

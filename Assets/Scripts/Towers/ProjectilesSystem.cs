@@ -156,6 +156,15 @@ namespace Towers
     }
 
     [Serializable]
+    public class ProjectileBaseStats
+    {
+        public float speed;
+        public float damage;
+        public float duration;
+        public float size;
+    }
+
+    [Serializable]
     public class Projectile
     {
         public int id;
@@ -165,6 +174,7 @@ namespace Towers
         public Vector3 position;
         public float speed;
         public Vector3 direction;
+        public float damage;
 
         public bool Equals(Projectile other)
         {
@@ -254,6 +264,12 @@ namespace Towers
         public ProjectileBuilder WithDirection(Vector3 direction)
         {
             projectile.direction = direction;
+            return this;
+        }
+
+        public ProjectileBuilder WithDamage(float damage)
+        {
+            projectile.damage = damage;
             return this;
         }
 

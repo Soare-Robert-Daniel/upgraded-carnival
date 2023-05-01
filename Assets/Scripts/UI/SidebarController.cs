@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Map;
 using Mobs;
 using Towers;
@@ -13,7 +15,8 @@ namespace UI
         public enum Stores
         {
             Towers,
-            Zones
+            Zones,
+            Upgrades
         }
 
         [SerializeField] private MapManager mapManager;
@@ -33,28 +36,33 @@ namespace UI
         [Header("Internal")]
         [SerializeField] private int itemIdGenerator;
 
+        [SerializeField] private int itemVisualIdGenerator;
+
         [SerializeField] private float currentMobInfoUpdateTime;
 
         [SerializeField] private int currentSelectedMobId;
+        private List<int> availableStoreItemsVisuals;
         private Label mobNameLabel;
         private ListView mobTokensListView;
-        private Button openTowerStoreBtn;
 
+        private Button openTowerStoreBtn;
+        private Button openUpgradeStoreBtn;
         private Button openZoneStoreBtn;
 
         private List<ZoneToken> selectedMobTokens;
 
         private ScrollView storeContainer;
 
-        private Dictionary<int, VisualElement> storeItems;
+        private List<StoreItem> storeItems;
 
-        private List<(Stores, int, int)> storeItemsOrder;
+        private Dictionary<int, VisualElement> storeItemsElements;
 
 
         private void Awake()
         {
-            storeItems = new Dictionary<int, VisualElement>();
-            storeItemsOrder = new List<(Stores, int, int)>();
+            storeItemsElements = new Dictionary<int, VisualElement>();
+            storeItems = new List<StoreItem>();
+            availableStoreItemsVisuals = new List<int>();
             currentSelectedMobId = -1;
         }
 
@@ -80,11 +88,15 @@ namespace UI
             storeContainer = sidebarRoot.rootVisualElement.Q<ScrollView>("StoreContainer");
             openTowerStoreBtn = sidebarRoot.rootVisualElement.Q<Button>("OpenTowerStoreBtn");
             openZoneStoreBtn = sidebarRoot.rootVisualElement.Q<Button>("OpenZoneStoreBtn");
+            openUpgradeStoreBtn = sidebarRoot.rootVisualElement.Q<Button>("OpenUpgradesStoreBtn");
 
             CreateZoneStoreItems(globalResources.zoneTokenDataScriptableObjects);
+            CreateTowerStoreItems(globalResources.towerDataScriptableObjects);
+            RefreshStoreItems();
 
             openTowerStoreBtn.clicked += () => ShowStore(Stores.Towers);
             openZoneStoreBtn.clicked += () => ShowStore(Stores.Zones);
+            openUpgradeStoreBtn.clicked += () => ShowStore(Stores.Upgrades);
 
             eventChannel.OnSelectedMobChanged += OnSelectedMobChanged;
         }
@@ -119,28 +131,97 @@ namespace UI
             mobTokensListView.RefreshItems();
         }
 
-        private void CreateZoneStoreItems(List<ZoneTokenDataScriptableObject> zoneTokenDataScriptableObjects)
+        private void CreateZoneStoreItems(IEnumerable<ZoneTokenDataScriptableObject> zoneTokenDataScriptableObjects)
         {
-            foreach (var zoneTokenDataScriptableObject in zoneTokenDataScriptableObjects)
+            foreach (var storeItem in from zoneTokenDataScriptableObject in zoneTokenDataScriptableObjects
+                     let id = GetNextItemId()
+                     select new StoreItem
+                     {
+                         id = id,
+                         label = zoneTokenDataScriptableObject.resourcesScriptableObject.label,
+                         price = zoneTokenDataScriptableObject.price.value.ToString("0"),
+                         store = Stores.Zones,
+                         order = 0,
+                         visualId = -1,
+                         onClick = () =>
+                         {
+                             Debug.Log($"Buy {zoneTokenDataScriptableObject.resourcesScriptableObject.label}");
+                             mapManager.TryBuyZoneForSelectedZone(zoneTokenDataScriptableObject.zoneTokenType);
+                         }
+                     })
+            {
+                storeItems.Add(storeItem);
+            }
+        }
+
+        private void CreateTowerStoreItems(IEnumerable<TowerDataScriptableObject> towerDataScriptableObjects)
+        {
+            foreach (var towerDataScriptableObject in towerDataScriptableObjects)
             {
                 var id = GetNextItemId();
-                var item = storeItemTemplate.CloneTree();
+                var storeItem = new StoreItem
+                {
+                    id = id,
+                    label = towerDataScriptableObject.resources.label,
+                    description = towerDataScriptableObject.resources.description,
+                    price = towerDataScriptableObject.price.value.ToString("0"),
+                    store = Stores.Towers,
+                    order = 0,
+                    visualId = -1,
+                    onClick = () =>
+                    {
+
+                        if (!mapManager.EconomyController.CanSpend(towerDataScriptableObject.price.resource.currency,
+                                towerDataScriptableObject.price.value)) return;
+                        Debug.Log($"Buy {towerDataScriptableObject.resources.label}");
+                        mapManager.EconomyController.SpendCurrency(towerDataScriptableObject.price.resource.currency,
+                            towerDataScriptableObject.price.value);
+                        towerManager.TowerRowController.CreateTower(towerDataScriptableObject);
+                    }
+                };
+
+                storeItems.Add(storeItem);
+            }
+        }
+
+        private void CreateStoreItemVisualElement()
+        {
+            var id = GetNextItemVisualId();
+            var item = storeItemTemplate.CloneTree();
+            storeContainer.Add(item);
+            storeItemsElements.Add(id, item);
+            availableStoreItemsVisuals.Add(id);
+        }
+
+        private void RefreshStoreItems()
+        {
+
+            while (storeItems.Count > availableStoreItemsVisuals.Count)
+            {
+                CreateStoreItemVisualElement();
+            }
+
+
+            // Order store items
+            storeItems.Sort((a, b) => a.order.CompareTo(b.order));
+
+            // Zip store items with visuals
+            var storeItemsOrder = storeItems.Zip(availableStoreItemsVisuals, (storeItem, visualId) => (storeItem, visualId));
+            foreach (var (storeItem, visualId) in storeItemsOrder)
+            {
+                var item = storeItemsElements[visualId];
                 var btn = item.Q<Button>("BuyBtn");
                 var priceLabel = item.Q<Label>("ItemPriceLabel");
                 var nameLabel = item.Q<Label>("ItemNameLabel");
 
-                priceLabel.text = $"{zoneTokenDataScriptableObject.price.value}";
-                nameLabel.text = $"{zoneTokenDataScriptableObject.resourcesScriptableObject.label}";
+                priceLabel.text = $"{storeItem.price}";
+                nameLabel.text = $"{storeItem.label}";
+                storeItem.visualId = visualId;
 
                 btn.clicked += () =>
                 {
-                    Debug.Log($"Buy {zoneTokenDataScriptableObject.resourcesScriptableObject.label}");
-                    mapManager.TryBuyZoneForSelectedZone(zoneTokenDataScriptableObject.zoneTokenType);
+                    storeItem.onClick?.Invoke();
                 };
-
-                storeItems.Add(id, item);
-                storeItemsOrder.Add((Stores.Zones, id, 0));
-                storeContainer.Add(item);
             }
         }
 
@@ -150,13 +231,37 @@ namespace UI
             return itemIdGenerator;
         }
 
+        private int GetNextItemVisualId()
+        {
+            itemVisualIdGenerator++;
+            return itemVisualIdGenerator;
+        }
+
         public void ShowStore(Stores store)
         {
             visibleStore = store;
-            foreach (var (storeView, itemId, order) in storeItemsOrder)
+            // foreach (var (storeView, itemId, order) in storeItemsOrder)
+            // {
+            //     storeItemsElements[itemId].style.display = store == storeView ? DisplayStyle.Flex : DisplayStyle.None;
+            // }
+
+            foreach (var storeItem in storeItems)
             {
-                storeItems[itemId].style.display = store == storeView ? DisplayStyle.Flex : DisplayStyle.None;
+                if (!storeItemsElements.TryGetValue(storeItem.visualId, out var item)) continue;
+                item.style.display = store == storeItem.store ? DisplayStyle.Flex : DisplayStyle.None;
             }
+        }
+
+        public class StoreItem
+        {
+            public string description;
+            public int id;
+            public string label;
+            public Action onClick;
+            public int order;
+            public string price;
+            public Stores store;
+            public int visualId;
         }
     }
 }

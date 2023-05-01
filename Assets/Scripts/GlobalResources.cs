@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Mobs;
+using Towers;
 using Towers.Zones;
 using UnityEngine;
 
@@ -13,7 +14,7 @@ public class GlobalResources : ScriptableObject
     public List<MobDataScriptableObject> mobDataScriptableObjects;
 
     [Header("Towers")]
-    public string todo;
+    public List<TowerDataScriptableObject> towerDataScriptableObjects;
 
     private Dictionary<ZoneTokenType, ZoneTokenDataScriptableObject> zoneTokenDataScriptableObjectsDictionary;
 

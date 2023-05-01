@@ -6,6 +6,7 @@ namespace Towers
     public class TowerResourcesScriptableObject : ScriptableObject
     {
         public string label;
+        public string description;
 
         [Header("Sprites")]
         public Sprite mainSprite;

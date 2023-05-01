@@ -9,6 +9,8 @@ namespace Towers
         [SerializeField] private TowerManager towerManager;
         [SerializeField] private int currentActiveTowers;
         [SerializeField] private List<TowerController> towerControllers;
+        [SerializeField] private TowerDataScriptableObject defaultTowerData;
+
 
         private Stack<int> activeTowers;
         private Stack<int> inactiveTowers;
@@ -29,11 +31,11 @@ namespace Towers
         {
             for (var i = 0; i < initialActiveTowers; i++)
             {
-                ActivateNextTower();
+                CreateTower(defaultTowerData);
             }
         }
 
-        private void ActivateNextTower()
+        public void CreateTower(TowerDataScriptableObject towerData)
         {
             if (inactiveTowers.Count == 0) return;
 
@@ -47,12 +49,16 @@ namespace Towers
                 id = towerId,
                 controllerId = towerId,
                 canFire = true,
-                attackTimeInterval = 1.5f,
+                attackTimeInterval = towerData.attackInterval,
                 currentAttackTime = 0f,
                 targetId = -1,
                 position = towerController.transform.position,
                 projectileBuilder = new ProjectileBuilder()
             };
+
+            tower.projectileBuilder
+                .WithSpeed(towerData.projectileData.baseStats.speed)
+                .WithDamage(towerData.projectileData.baseStats.damage);
 
             towerManager.TowerSystem.AddTower(tower);
 

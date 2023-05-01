@@ -10,6 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b0876f89d0ba48e9bd49e9a6a2070bcd, type: 3}
-  m_Name: Tower Attack Zone
+  m_Name: Quick Fire Resources
   m_EditorClassIdentifier: 
-  mainTexture: {fileID: 0}
+  label: Quick Fire Tower
+  description: A tower with very fast attack speed and low damage.
+  mainSprite: {fileID: 21300000, guid: c248510d3c85b784cb450a1f1768da18, type: 3}
